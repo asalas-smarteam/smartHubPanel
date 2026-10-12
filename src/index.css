@@ -1,0 +1,155 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * Tema de Smarteam.
+ * Paleta tomada de las variables CSS de https://smarteamcr.com/ (2026-10-12).
+ * Los pares de contraste se verifican en src/theme.test.js: si cambias un color, corre los tests.
+ */
+
+@theme {
+  --font-sans:
+    'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-brand-navy: #051849;
+  --color-brand-navy-deep: #03102f;
+  --color-brand-royal: #0b58d3;
+  --color-brand-royal-deep: #07429a;
+  --color-brand-blue: #1e8ff6;
+  --color-brand-blue-pale: #cfe2fa;
+  --color-brand-accent: #e8481c;
+  --color-brand-accent-strong: #d63e14;
+  --color-brand-accent-deep: #c2400f;
+  --color-brand-mint: #42e4b3;
+  --color-brand-ink-soft: #41527a;
+  --color-brand-paper-tint: #eef3fc;
+  --color-brand-line-light: #eaeff8;
+
+  --shadow-card: 0 16px 40px -32px rgb(5 24 73 / 0.22);
+  --shadow-card-hover: 0 26px 55px -32px rgb(5 24 73 / 0.3);
+}
+
+/* Variables de shadcn/ui (solo tema claro en la Fase 1). */
+:root {
+  --radius: 0.875rem;
+
+  --background: #eef3fc;
+  --foreground: #051849;
+  --card: rgb(255 255 255 / 0.7);
+  --card-foreground: #051849;
+  --popover: rgb(255 255 255 / 0.85);
+  --popover-foreground: #051849;
+  --primary: #0b58d3;
+  --primary-hover: #07429a;
+  --primary-foreground: #ffffff;
+  --secondary: #cfe2fa;
+  --secondary-foreground: #051849;
+  --muted: #eaeff8;
+  --muted-foreground: #41527a;
+  --accent: #cfe2fa;
+  --accent-foreground: #051849;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #eaeff8;
+  --input: #d5deee;
+  --ring: #1e8ff6;
+
+  --sidebar: rgb(5 24 73 / 0.85);
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #cfe2fa;
+  --sidebar-accent-foreground: #051849;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+}
+
+/* Superficies de vidrio. Cada una tiene su respaldo sólido más abajo. */
+@utility glass {
+  background-color: rgb(255 255 255 / 0.6);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.5);
+  box-shadow: var(--shadow-card);
+}
+
+@utility glass-strong {
+  background-color: rgb(255 255 255 / 0.85);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(5 24 73 / 0.1);
+  box-shadow: 0 18px 40px -16px rgb(5 24 73 / 0.35);
+}
+
+@utility glass-dark {
+  background-color: rgb(5 24 73 / 0.85);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: #ffffff;
+}
+
+/* Respaldo: sin soporte de backdrop-filter, o con "reducir transparencia" activado. */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background-color: rgb(255 255 255 / 0.96);
+  }
+  .glass-strong {
+    background-color: #ffffff;
+  }
+  .glass-dark {
+    background-color: #051849;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background-color: rgb(255 255 255 / 0.96);
+    backdrop-filter: none;
+  }
+  .glass-strong {
+    background-color: #ffffff;
+    backdrop-filter: none;
+  }
+  .glass-dark {
+    background-color: #051849;
+    backdrop-filter: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply bg-background;
+  }
+  body {
+    @apply min-h-svh font-sans text-foreground antialiased;
+  }
+}
