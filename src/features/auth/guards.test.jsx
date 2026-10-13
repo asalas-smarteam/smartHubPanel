@@ -24,14 +24,14 @@ describe('guards de rutas', () => {
       route: '/cambiar-contrasena',
       session: DEMO_ACCOUNTS.clienteUsuario.email,
     })
-    expect(await screen.findByText(/Hola, Mario Quesada/)).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/')
+    expect(await screen.findByRole('heading', { name: 'Soporte' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/soporte')
   })
 
   it('el inicio lleva a la primera sección permitida', async () => {
     const { router } = renderApp({ route: '/', session: DEMO_ACCOUNTS.smarteam.email })
-    expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/usuarios')
+    expect(await screen.findByRole('heading', { name: 'Bandeja' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/bandeja')
   })
 
   it('una ruta inexistente muestra "Página no encontrada"', async () => {
@@ -51,7 +51,7 @@ describe('guards de rutas', () => {
       route: '/',
       session: DEMO_ACCOUNTS.clienteUsuario.email,
     })
-    expect(await screen.findByText(/Hola, Mario Quesada/)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Soporte' })).toBeInTheDocument()
 
     server.use(
       http.get('/api/staff/tenants', () =>

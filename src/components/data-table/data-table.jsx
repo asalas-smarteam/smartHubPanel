@@ -38,6 +38,7 @@ const SKELETON_ROWS = 5
  *   getRowId?: (row: object) => string,
  *   label: string,
  * }} props
+ * Cada columna puede definir `meta.cellClassName` (p. ej. dejar que el título haga salto de línea).
  */
 export function DataTable({
   columns,
@@ -128,7 +129,7 @@ export function DataTable({
             rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getAllCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className={cell.column.columnDef.meta?.cellClassName}>
                     <table.FlexRender cell={cell} />
                   </TableCell>
                 ))}

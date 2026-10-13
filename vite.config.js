@@ -21,6 +21,29 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       alias: { '@': path.resolve(rootDir, 'src') },
     },
+    build: {
+      rolldownOptions: {
+        output: {
+          // Librerías en archivos aparte: cambian poco y el navegador las mantiene en caché.
+          codeSplitting: {
+            groups: [
+              {
+                name: 'vendor-react',
+                test: /node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/,
+              },
+              {
+                name: 'vendor-ui',
+                test: /node_modules[\\/](radix-ui|@radix-ui|sonner|lucide-react)[\\/]/,
+              },
+              {
+                name: 'vendor-data',
+                test: /node_modules[\\/](@tanstack|zod|react-hook-form|@hookform|date-fns)[\\/]/,
+              },
+            ],
+          },
+        },
+      },
+    },
     server: {
       proxy: {
         '/api': {
@@ -35,6 +58,8 @@ export default defineConfig(({ command, mode }) => {
       setupFiles: ['src/test/setup.js'],
       css: false,
       restoreMocks: true,
+      // Las pantallas completas con varios pasos de usuario tardan más que el límite por defecto (5 s).
+      testTimeout: 30000,
       coverage: {
         include: ['src/**/*.{js,jsx}'],
         exclude: ['src/components/ui/**', 'src/mocks/**', 'src/test/**', 'src/**/*.test.{js,jsx}'],

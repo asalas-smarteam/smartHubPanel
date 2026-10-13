@@ -1,6 +1,7 @@
 // Estado del modo simulado. Imita lo que guarda el backend: usuarios (con tokenVersion),
 // sesiones e intentos fallidos de login. Solo existe en el código de mocks.
 import { createSeedUsers, SEED_TENANTS } from './seed'
+import { createSeedTickets } from './seed-tickets'
 
 const STORAGE_KEY = 'panel-mock-db'
 const SESSION_KEY = 'panel-mock-session'
@@ -10,12 +11,26 @@ let memorySessionId = null
 let state = createInitialState()
 
 function createInitialState() {
+  const users = createSeedUsers()
+  const { tickets, counters } = createSeedTickets(users)
   return {
     tenants: SEED_TENANTS.map((tenant) => ({ ...tenant })),
-    users: createSeedUsers(),
+    users,
     sessions: {},
     failedLogins: {},
+    tickets,
+    ticketCounters: counters,
   }
+}
+
+/** Datos guardados por una versión anterior del mock (sin tickets): se completan con el seed. */
+function migrate(saved) {
+  if (!saved.tickets) {
+    const { tickets, counters } = createSeedTickets(saved.users)
+    saved.tickets = tickets
+    saved.ticketCounters = counters
+  }
+  return saved
 }
 
 /** Activa la persistencia en localStorage/sessionStorage (solo en el navegador, modo mock). */
@@ -23,8 +38,8 @@ export function enableBrowserPersistence() {
   persistInBrowser = true
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY)
-    if (saved) state = JSON.parse(saved)
-    else save()
+    if (saved) state = migrate(JSON.parse(saved))
+    save()
   } catch {
     state = createInitialState()
   }

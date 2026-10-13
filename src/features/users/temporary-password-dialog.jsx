@@ -66,7 +66,7 @@ export function TemporaryPasswordDialog({ data, onClose }) {
               {copied ? 'Copiada' : 'Copiar'}
             </Button>
           </div>
-          <p className="rounded-md bg-orange-50 px-3 py-2 text-sm text-brand-accent-deep">
+          <p className="rounded-md bg-status-waiting-bg px-3 py-2 text-sm text-status-waiting-fg">
             Esta contraseña se muestra una sola vez. Pásala al usuario por el canal habitual: al
             entrar se le pedirá cambiarla.
           </p>

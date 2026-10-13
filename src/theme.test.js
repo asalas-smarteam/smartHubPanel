@@ -49,6 +49,32 @@ describe('contraste del tema (WCAG AA, texto normal)', () => {
     ['secondary-foreground sobre secondary', theme('secondary-foreground'), theme('secondary')],
     ['primary como enlace sobre background', theme('primary'), theme('background')],
     ['navy sobre blue-pale (ítem activo)', brand('navy'), brand('blue-pale')],
+    [
+      'insignia "Esperando cliente"',
+      hexToRgb(readVar('color-status-waiting-fg')),
+      hexToRgb(readVar('color-status-waiting-bg')),
+    ],
+    [
+      'insignia "Resuelto" / "Activo"',
+      hexToRgb(readVar('color-status-done-fg')),
+      hexToRgb(readVar('color-status-done-bg')),
+    ],
+    [
+      'insignia "Inactivo"',
+      hexToRgb(readVar('color-status-muted-fg')),
+      hexToRgb(readVar('color-status-muted-bg')),
+    ],
+    ['insignia "Abierto" (blanco sobre royal)', WHITE, brand('royal')],
+    [
+      'insignia "Con error" (eventos y syncs)',
+      hexToRgb(readVar('color-status-error-fg')),
+      hexToRgb(readVar('color-status-error-bg')),
+    ],
+    [
+      'texto de error sobre blanco (contador "Fallidos")',
+      hexToRgb(readVar('color-status-error-fg')),
+      WHITE,
+    ],
   ]
 
   it.each(pairs)('%s', (_name, fg, bg) => {

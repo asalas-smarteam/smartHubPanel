@@ -21,7 +21,7 @@ export function renderApp({ route = '/', session = null } = {}) {
   const router = createMemoryRouter(routes, { initialEntries: [route] })
   const user = userEvent.setup()
   const utils = render(
-    <AppProviders queryClient={queryClient} devtools={false}>
+    <AppProviders queryClient={queryClient} devtools={false} toastDuration={Infinity}>
       <RouterProvider router={router} />
     </AppProviders>,
   )

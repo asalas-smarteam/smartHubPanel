@@ -25,6 +25,16 @@
   --color-brand-paper-tint: #eef3fc;
   --color-brand-line-light: #eaeff8;
 
+  /* Insignias de estado (contraste verificado en src/theme.test.js). */
+  --color-status-waiting-bg: #fff1e8;
+  --color-status-waiting-fg: #c2400f;
+  --color-status-done-bg: #d9f7ec;
+  --color-status-done-fg: #065f46;
+  --color-status-muted-bg: #eaeff8;
+  --color-status-muted-fg: #41527a;
+  --color-status-error-bg: #fee4e2;
+  --color-status-error-fg: #b42318;
+
   --shadow-card: 0 16px 40px -32px rgb(5 24 73 / 0.22);
   --shadow-card-hover: 0 26px 55px -32px rgb(5 24 73 / 0.3);
 }

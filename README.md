@@ -22,7 +22,18 @@ El destino del proxy se cambia con `PANEL_API_TARGET` en un `.env.local` (ver `.
 | `admin@acme.test`     | `Temporal-123`  | Cliente admin, con cambio de contraseña obligatorio |
 | `usuario@acme.test`   | `Usuario-2026`  | Cliente usuario                                     |
 
-Los datos simulados se guardan en el navegador. Para volver a los datos de ejemplo, borra la clave `panel-mock-db` del `localStorage` (DevTools → Application → Local Storage) y recarga.
+Qué se puede probar con cada una:
+
+- **Smarteam**: la **Bandeja** con los tickets de las tres empresas de ejemplo (contadores, filtros, responder, "Esperando cliente", "Resolver" con resolución interna), **Usuarios**, y **Eventos** y **Syncs** eligiendo la empresa (Initech está suspendida y también se puede consultar). En el detalle de un evento se ven el **Payload** y la **Auditoría**.
+- **Cliente** (cualquiera de las dos de ACME): **Soporte** con los tickets de su empresa (crear con imágenes o Ctrl+V, responder, "Sigue fallando"), y **Eventos** y **Syncs** de su empresa con filtros por estado, tipo, referencia, tarea y fechas.
+- **Reportar problema**: como cliente, abre un evento "Con error" (p. ej. el primero de la lista) o la sync con 60 fallidos, toca **Reportar problema** y crea el ticket: queda enlazado y Smarteam lo ve en la Bandeja con su contexto.
+- Para ver el ida y vuelta, abre Smarteam en una pestaña y el cliente en otra.
+
+Los datos simulados se guardan en el navegador. Las imágenes que subas en este modo se pierden al recargar (las de los tickets de ejemplo siempre están). Para volver a los datos de ejemplo, borra la clave `panel-mock-db` del `localStorage` (DevTools → Application → Local Storage) y recarga.
+
+### Contrato con el backend
+
+`docs/contrato-backend/` tiene los acuerdos de forma de datos, campos y errores que este front ya implementa y que el backend debe respetar en `/panel/api`.
 
 ### Calidad
 

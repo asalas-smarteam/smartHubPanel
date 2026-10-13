@@ -59,12 +59,12 @@ describe('login', () => {
     expect(await screen.findByText(/Demasiados intentos/)).toBeInTheDocument()
   })
 
-  it('cuenta Smarteam → entra y queda en /usuarios', async () => {
+  it('cuenta Smarteam → entra y queda en /bandeja', async () => {
     const { user, router } = renderApp({ route: '/login' })
     await screen.findByRole('button', { name: 'Entrar' })
     await fillAndSubmit(user, smarteam)
-    expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/usuarios')
+    expect(await screen.findByRole('heading', { name: 'Bandeja' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/bandeja')
   })
 
   it('cuenta con cambio pendiente → /cambiar-contrasena', async () => {
@@ -86,8 +86,8 @@ describe('login', () => {
 
   it('con sesión, /login redirige al inicio', async () => {
     const { router } = renderApp({ route: '/login', session: smarteam.email })
-    await screen.findByRole('heading', { name: 'Usuarios' })
-    expect(router.state.location.pathname).toBe('/usuarios')
+    await screen.findByRole('heading', { name: 'Bandeja' })
+    expect(router.state.location.pathname).toBe('/bandeja')
   })
 
   it('el login manda X-Panel-Request: 1', async () => {
@@ -95,7 +95,7 @@ describe('login', () => {
     const { user } = renderApp({ route: '/login' })
     await screen.findByRole('button', { name: 'Entrar' })
     await fillAndSubmit(user, smarteam)
-    await screen.findByRole('heading', { name: 'Usuarios' })
+    await screen.findByRole('heading', { name: 'Bandeja' })
     expect(calls).toHaveLength(1)
     expect(calls[0].headers.get('X-Panel-Request')).toBe('1')
   })

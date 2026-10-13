@@ -12,9 +12,12 @@ const badgeVariants = cva(
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
         destructive: 'border-transparent bg-destructive text-white',
         outline: 'text-foreground',
-        success: 'border-transparent bg-emerald-100 text-emerald-900',
-        muted: 'border-transparent bg-muted text-muted-foreground',
-        warning: 'border-transparent bg-orange-50 text-brand-accent-deep',
+        // Ajuste Smarteam: variantes de estado con colores del tema (src/index.css).
+        success: 'border-transparent bg-status-done-bg text-status-done-fg',
+        muted: 'border-transparent bg-status-muted-bg text-status-muted-fg',
+        warning: 'border-transparent bg-status-waiting-bg text-status-waiting-fg',
+        info: 'border-transparent bg-brand-blue-pale text-brand-navy',
+        error: 'border-transparent bg-status-error-bg text-status-error-fg',
       },
     },
     defaultVariants: {

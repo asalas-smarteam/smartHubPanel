@@ -11,11 +11,16 @@ const ReactQueryDevtools = import.meta.env.DEV
     )
   : null
 
-export function AppProviders({ queryClient, children, devtools = true }) {
+/**
+ * @param {{ queryClient: any, children: any, devtools?: boolean, toastDuration?: number }} props
+ *   `toastDuration`: solo para los tests (Infinity), así un aviso no se cierra mientras
+ *   la máquina tarda en cargar la página siguiente.
+ */
+export function AppProviders({ queryClient, children, devtools = true, toastDuration }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <Toaster />
+      <Toaster duration={toastDuration} />
       {devtools && ReactQueryDevtools && (
         <Suspense fallback={null}>
           <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />

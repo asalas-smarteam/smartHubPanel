@@ -30,6 +30,11 @@ export const ERROR_CODES = Object.freeze({
   NOT_FOUND: 'not_found',
   INVALID_RESPONSE: 'invalid_response',
   NETWORK_ERROR: 'network_error',
+  INVALID_TRANSITION: 'invalid_transition',
+  TOO_MANY_IMAGES: 'too_many_images',
+  INVALID_IMAGE: 'invalid_image',
+  IMAGE_TOO_LARGE: 'image_too_large',
+  PAGE_WINDOW_EXCEEDED: 'page_window_exceeded',
 })
 
 const MESSAGES_BY_CODE = {
@@ -44,6 +49,11 @@ const MESSAGES_BY_CODE = {
   not_found: 'No encontramos lo que buscas.',
   invalid_response: 'El servidor respondió algo inesperado. Inténtalo más tarde.',
   network_error: 'No hay conexión con el servidor. Revisa tu conexión e inténtalo de nuevo.',
+  invalid_transition: 'El ticket cambió mientras lo veías. Ya actualizamos la información.',
+  too_many_images: 'Máximo 5 imágenes por mensaje.',
+  invalid_image: 'Solo se aceptan imágenes PNG, JPEG o WebP.',
+  image_too_large: 'Cada imagen puede pesar como máximo 5 MB.',
+  page_window_exceeded: 'Para ver tickets más antiguos, filtra por estado, empresa o categoría.',
 }
 
 const MESSAGES_BY_STATUS = {
