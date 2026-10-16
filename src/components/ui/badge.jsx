@@ -10,14 +10,16 @@ const badgeVariants = cva(
       variant: {
         default: 'border-transparent bg-primary text-primary-foreground',
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        destructive: 'border-transparent bg-destructive text-white',
+        destructive: 'border-transparent bg-destructive-solid text-white',
         outline: 'text-foreground',
         // Ajuste Smarteam: variantes de estado con colores del tema (src/index.css).
         success: 'border-transparent bg-status-done-bg text-status-done-fg',
         muted: 'border-transparent bg-status-muted-bg text-status-muted-fg',
         warning: 'border-transparent bg-status-waiting-bg text-status-waiting-fg',
-        info: 'border-transparent bg-brand-blue-pale text-brand-navy',
+        info: 'border-transparent bg-status-info-bg text-status-info-fg',
         error: 'border-transparent bg-status-error-bg text-status-error-fg',
+        // Error corregido en un reintento (plan 4k): el amarillo de los gráficos.
+        corrected: 'border-transparent bg-status-corrected-bg text-status-corrected-fg',
       },
     },
     defaultVariants: {

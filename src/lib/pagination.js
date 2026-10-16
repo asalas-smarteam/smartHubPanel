@@ -4,6 +4,9 @@ import { z } from 'zod'
 
 export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 export const DEFAULT_PAGE_SIZE = 25
+/** Eventos y syncs: la API no deja pasar de página × tamaño > 10 000 (contrato E3/E5). */
+export const RESULTS_WINDOW = 10000
+export const DATE_WINDOW_HINT = 'Para ver registros más antiguos, filtra por fechas.'
 
 /** Esquema de una página del servidor: `{ items, page, pageSize, total }`. */
 export function paginatedSchema(itemSchema) {
@@ -13,6 +16,16 @@ export function paginatedSchema(itemSchema) {
     pageSize: z.number().int().min(1),
     total: z.number().int().min(0),
   })
+}
+
+/**
+ * Filtro de la URL solo si es un valor conocido; si no, '' (sin filtro). Así una URL editada
+ * a mano no termina en un 400 del backend.
+ * @param {string} value
+ * @param {readonly string[]} allowed
+ */
+export function pickOption(value, allowed) {
+  return allowed.includes(value) ? value : ''
 }
 
 /** @param {string | null} value */

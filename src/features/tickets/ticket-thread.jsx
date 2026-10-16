@@ -10,7 +10,7 @@ function Entry({ author, isStaff, date, body, attachments, urlFor, label }) {
       aria-label={label}
       className={cn(
         'flex flex-col gap-3 rounded-xl border p-4',
-        isStaff ? 'border-brand-blue-pale bg-brand-paper-tint' : 'bg-white/90',
+        isStaff ? 'border-notice-border bg-notice' : 'bg-surface',
       )}
     >
       <header className="flex flex-wrap items-center gap-2 text-sm">

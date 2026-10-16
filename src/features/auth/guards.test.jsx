@@ -24,8 +24,11 @@ describe('guards de rutas', () => {
       route: '/cambiar-contrasena',
       session: DEMO_ACCOUNTS.clienteUsuario.email,
     })
-    expect(await screen.findByRole('heading', { name: 'Soporte' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/soporte')
+    // El cliente entra al Inicio (plan 4e §3.3).
+    expect(
+      await screen.findByRole('heading', { name: 'Estado de la integración' }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/inicio')
   })
 
   it('el inicio lleva a la primera sección permitida', async () => {
@@ -51,7 +54,9 @@ describe('guards de rutas', () => {
       route: '/',
       session: DEMO_ACCOUNTS.clienteUsuario.email,
     })
-    expect(await screen.findByRole('heading', { name: 'Soporte' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Estado de la integración' }),
+    ).toBeInTheDocument()
 
     server.use(
       http.get('/api/staff/tenants', () =>

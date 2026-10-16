@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { DEMO_ACCOUNTS, renderApp } from '@/test/render'
-import { recordRequests } from '@/test/requests'
+import { isBulkPage, recordRequests } from '@/test/requests'
 
 const client = DEMO_ACCOUNTS.clienteUsuario.email // ACME
 const staff = DEMO_ACCOUNTS.smarteam.email
@@ -24,7 +24,8 @@ const cells = (row) =>
 describe('Syncs', () => {
   it('lista las corridas con contadores; la que no terminó aparece "En curso"', async () => {
     const { table } = await openSyncs()
-    expect(screen.getByText('30 resultados')).toBeInTheDocument()
+    // Por defecto se ocultan las corridas sin cambios (G2): 30 de tareas + 2 de la cola con datos.
+    expect(screen.getByText('32 resultados')).toBeInTheDocument()
     const [running] = bodyRows(table)
     expect(cells(running)[3]).toBe('En curso')
     expect(within(running).getByRole('link')).toHaveAttribute('href', '/syncs/sync-acme-030')
@@ -49,13 +50,13 @@ describe('Syncs', () => {
   })
 
   it('filtros: tarea (de sync-tasks), estado y fechas llegan a la API y quedan en la URL', async () => {
-    const requests = recordRequests('/api/syncs')
+    const requests = recordRequests('/api/syncs', undefined, { ignore: isBulkPage })
     const { user, router } = await openSyncs()
 
     await user.click(screen.getByRole('combobox', { name: 'Tarea' }))
     await user.click(await screen.findByRole('option', { name: 'Contactos' }))
     await waitFor(() =>
-      expect(requests.at(-1).url.searchParams.get('taskId')).toBe('task-acme-contacts'),
+      expect(requests.at(-1).url.searchParams.get('taskId')).toBe('6acf00000000000000000002'),
     )
 
     await user.click(screen.getByRole('combobox', { name: 'Estado' }))
@@ -67,7 +68,7 @@ describe('Syncs', () => {
       expect(requests.at(-1).url.searchParams.get('from')).toBe(new Date(2026, 9, 1).toISOString()),
     )
     expect(router.state.location.search).toBe(
-      '?taskId=task-acme-contacts&status=completed&desde=2026-10-01',
+      '?taskId=6acf00000000000000000002&status=completed&desde=2026-10-01',
     )
   })
 

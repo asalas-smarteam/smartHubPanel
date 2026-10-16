@@ -23,8 +23,8 @@ describe('Detalle de evento', () => {
     expect(screen.getByText('3 de 3')).toBeInTheDocument()
     const lastError = screen.getByRole('region', { name: 'Último error' })
     expect(lastError).toHaveTextContent('El artículo ITEM-0042 no existe en el sistema destino.')
-    expect(screen.queryByRole('region', { name: 'Payload' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Auditoría' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Auditoría completa' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Auditoría completa' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Volver a Eventos' })).toHaveAttribute(
       'href',
       '/eventos',
@@ -50,7 +50,7 @@ describe('Detalle de evento', () => {
       ),
     )
     await openEvent('/eventos/ev-acme-001')
-    expect(screen.queryByRole('region', { name: 'Payload' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Auditoría completa' })).not.toBeInTheDocument()
     expect(screen.queryByText(/secreto/)).not.toBeInTheDocument()
   })
 
@@ -65,11 +65,10 @@ describe('Detalle de evento', () => {
     expect(screen.queryByRole('button', { name: 'Reintentar' })).not.toBeInTheDocument()
   })
 
-  it('Smarteam con staff.events.raw ve Payload y Auditoría en el visor JSON', async () => {
+  it('Smarteam con staff.events.raw ve la auditoría completa (plegada)', async () => {
     await openEvent('/eventos/ev-acme-001?empresa=ACME', staff)
-    const payload = screen.getByRole('region', { name: 'Payload' })
-    expect(within(payload).getByText(/deal/)).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Auditoría' })).toBeInTheDocument()
+    const audit = screen.getByRole('region', { name: 'Auditoría completa' })
+    expect(within(audit).getByText(/Llamadas al ERP/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Volver a Eventos' })).toHaveAttribute(
       'href',
       '/eventos?empresa=ACME',
@@ -80,7 +79,7 @@ describe('Detalle de evento', () => {
     getDb().users.find((user) => user.email === staff).permissions = ['events.read', 'syncs.read']
     await openEvent('/eventos/ev-acme-001?empresa=ACME', staff)
     expect(screen.getByText('Con error')).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Payload' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Auditoría completa' })).not.toBeInTheDocument()
   })
 
   it('Smarteam sin ?empresa= primero elige la empresa', async () => {

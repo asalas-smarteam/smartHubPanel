@@ -1,17 +1,25 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router'
 
+import { DurationSummary } from '@/components/charts/duration-summary'
 import { DataTable } from '@/components/data-table/data-table'
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { FilterSelect } from '@/components/filter-select'
 import { TenantGate, TenantPicker } from '@/features/scope/tenant-picker'
 import { scopeSearch, useScope } from '@/features/scope/use-scope'
 import { formatDateTime, formatDuration } from '@/lib/dates'
-import { usePaginationParams } from '@/lib/pagination'
+import { DATE_WINDOW_HINT, pickOption, RESULTS_WINDOW, usePaginationParams } from '@/lib/pagination'
+import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { useSyncs, useSyncTasks } from './api'
-import { OBJECT_TYPE_LABELS, SYNC_STATUS_OPTIONS } from './constants'
+import { DURATIONS_LIMIT, useSyncDurations, useSyncs, useSyncTasks } from './api'
+import {
+  MISSING_TASK_LABEL,
+  OBJECT_TYPE_LABELS,
+  SYNC_STATUS_OPTIONS,
+  isValidTaskId,
+  SYNC_STATUSES,
+} from './constants'
 import { SyncStatusBadge } from './sync-status-badge'
 
 const numberFormat = new Intl.NumberFormat('es')
@@ -43,7 +51,11 @@ function buildColumns(search) {
         </Link>
       ),
     },
-    { id: 'task', header: 'Tarea', cell: ({ row }) => row.original.task.name },
+    {
+      id: 'task',
+      header: 'Tarea',
+      cell: ({ row }) => row.original.task?.name ?? MISSING_TASK_LABEL,
+    },
     {
       id: 'objectType',
       header: 'Objeto',
@@ -75,16 +87,21 @@ export function SyncsPage() {
   const scope = useScope()
   const { page, pageSize, setPagination, setFilter, getFilter } = usePaginationParams()
   const filters = {
-    taskId: getFilter('taskId'),
-    status: getFilter('status'),
+    // Valores que el backend rechazaría (400) se ignoran: vienen de una URL editada a mano.
+    taskId: isValidTaskId(getFilter('taskId')) ? getFilter('taskId') : '',
+    status: pickOption(getFilter('status'), SYNC_STATUSES),
     desde: getFilter('desde'),
     hasta: getFilter('hasta'),
+    // Activado por defecto: `?vacias=1` muestra también las corridas sin cambios.
+    hideEmpty: getFilter('vacias') !== '1',
   }
   const syncs = useSyncs(scope, { page, pageSize, ...filters })
+  const durations = useSyncDurations(scope, filters)
   const tasks = useSyncTasks(scope)
   const taskOptions = (tasks.data ?? []).map((task) => ({ value: task.id, label: task.name }))
   const search = scopeSearch(scope)
   const columns = useMemo(() => buildColumns(search), [search])
+  const rowHref = useCallback((row) => `/syncs/${encodeURIComponent(row.id)}${search}`, [search])
 
   return (
     <div className="flex flex-col gap-6">
@@ -124,9 +141,33 @@ export function SyncsPage() {
               to={filters.hasta}
               onChange={setFilter}
             />
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-primary"
+                checked={filters.hideEmpty}
+                onChange={(event) => setFilter('vacias', event.target.checked ? '' : '1')}
+              />
+              Ocultar corridas sin cambios
+            </label>
           </div>
 
+          <DurationSummary
+            query={durations}
+            title="Duración promedio por tarea"
+            description="Corridas terminadas del filtro; las que están en curso no cuentan."
+            cappedNote={`Se usaron las ${formatNumber(DURATIONS_LIMIT)} más recientes.`}
+            noun={{ one: 'corrida', other: 'corridas' }}
+            unavailable={
+              filters.status === 'running'
+                ? 'Las corridas en curso todavía no tienen duración.'
+                : null
+            }
+            empty="No hay corridas terminadas con estos filtros."
+          />
+
           <DataTable
+            rowHref={rowHref}
             label="Syncs"
             columns={columns}
             data={syncs.data}
@@ -138,6 +179,8 @@ export function SyncsPage() {
             error={syncs.error}
             onRetry={syncs.refetch}
             emptyTitle="No hay corridas con estos filtros"
+            maxResults={RESULTS_WINDOW}
+            windowHint={DATE_WINDOW_HINT}
           />
         </>
       )}

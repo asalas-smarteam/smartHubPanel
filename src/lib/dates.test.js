@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { dayRangeToQuery, formatDuration, startOfLocalDayISO } from './dates'
+import {
+  browserTimeZone,
+  dayRangeToQuery,
+  formatDayLabel,
+  formatDuration,
+  formatLongDate,
+  formatShortDate,
+  lastDaysRange,
+  startOfLocalDayISO,
+} from './dates'
 
 describe('rango de días para la API (contrato E3)', () => {
   it('"desde" es el inicio de ese día y "hasta" el inicio del día siguiente, en hora local', () => {
@@ -34,5 +43,27 @@ describe('formatDuration', () => {
 
   it('sin fin (corrida en curso) → texto vacío', () => {
     expect(formatDuration(start, null, 'En curso')).toBe('En curso')
+  })
+})
+
+describe('períodos de los tableros (F1, F7)', () => {
+  const now = new Date(2026, 9, 12, 15, 30) // 12 oct 2026, 15:30 local
+
+  it('los últimos N días incluyen hoy: desde el inicio de hace N−1 días hasta mañana (exclusivo)', () => {
+    const range = lastDaysRange(30, now)
+    expect(range.from).toBe(new Date(2026, 8, 13).toISOString())
+    expect(range.to).toBe(new Date(2026, 9, 13).toISOString())
+    expect(range.tz).toBe(browserTimeZone())
+  })
+
+  it('la zona del navegador es una zona IANA', () => {
+    expect(browserTimeZone()).toMatch(/^[A-Za-z_]+(\/[A-Za-z_+-]+)*$|^UTC$/)
+  })
+
+  it('rótulos de días y fechas largas en español', () => {
+    expect(formatDayLabel('2026-10-06')).toBe('mar 6')
+    expect(formatDayLabel('2026-10-11')).toBe('dom 11')
+    expect(formatShortDate('2026-09-28')).toBe('28 sep')
+    expect(formatLongDate(new Date(2026, 8, 13))).toBe('13 de septiembre de 2026')
   })
 })

@@ -25,6 +25,8 @@ const StaffTicketPage = lazyPage(
   () => import('@/features/inbox/staff-ticket-page'),
   'StaffTicketPage',
 )
+const DashboardPage = lazyPage(() => import('@/features/dashboard/dashboard-page'), 'DashboardPage')
+const MetricsPage = lazyPage(() => import('@/features/metrics/metrics-page'), 'MetricsPage')
 const EventsPage = lazyPage(() => import('@/features/events/events-page'), 'EventsPage')
 const EventPage = lazyPage(() => import('@/features/events/event-page'), 'EventPage')
 const SyncsPage = lazyPage(() => import('@/features/syncs/syncs-page'), 'SyncsPage')
@@ -59,12 +61,18 @@ export const routes = [
             element: <AppLayout />,
             children: [
               { index: true, element: <HomePage /> },
+              { path: 'inicio', ...withPermission(PERMISSIONS.EVENTS_READ, DashboardPage) },
               { path: 'soporte', ...withPermission(PERMISSIONS.TICKETS_READ, SupportListPage) },
               {
                 path: 'soporte/nuevo',
                 ...withPermission(PERMISSIONS.TICKETS_CREATE, NewTicketPage),
               },
               { path: 'soporte/:id', ...withPermission(PERMISSIONS.TICKETS_READ, TicketPage) },
+              {
+                path: 'metricas',
+                // Solo Smarteam por ahora (14-10-2026); para el cliente se agrega TICKETS_READ.
+                ...withPermission(PERMISSIONS.STAFF_TICKETS, MetricsPage),
+              },
               { path: 'bandeja', ...withPermission(PERMISSIONS.STAFF_TICKETS, InboxPage) },
               {
                 path: 'bandeja/:tenantKey/:id',

@@ -1,5 +1,7 @@
 import { authHandlers } from './auth'
+import { dashboardHandlers } from './dashboard'
 import { eventHandlers } from './events'
+import { metricsHandlers } from './metrics'
 import { staffTicketHandlers } from './staff-tickets'
 import { staffTenantsHandlers } from './staff-tenants'
 import { staffUsersHandlers } from './staff-users'
@@ -11,8 +13,11 @@ export const handlers = [
   ...authHandlers,
   ...staffUsersHandlers,
   ...staffTenantsHandlers,
+  // Antes que los de tickets: `/tickets/metrics` no es un `/tickets/:id`.
+  ...metricsHandlers,
   ...ticketHandlers,
   ...staffTicketHandlers,
   ...eventHandlers,
+  ...dashboardHandlers,
   ...syncHandlers,
 ]

@@ -9,10 +9,21 @@ export const SYNC_STATUS_LABELS = {
 
 export const SYNC_STATUS_VARIANT = { completed: 'success', errored: 'error', running: 'info' }
 
+/** Texto para una corrida cuya tarea no llegó (`task: null`). */
+export const MISSING_TASK_LABEL = 'Tarea no disponible'
+
+/** Id de la tarea de la cola de eventos (G1): no es un ObjectId. */
+export const EVENT_QUEUE_TASK_ID = 'event_queue'
+
+/** Id de tarea válido para la API: ObjectId de 24 hexadecimales o la cola de eventos. */
+export const isValidTaskId = (value) =>
+  value === EVENT_QUEUE_TASK_ID || /^[0-9a-f]{24}$/i.test(value)
+
 /** Tipos de tarea genéricos (contrato E5). */
 export const TASK_TYPE_LABELS = {
   record_sync: 'Sincronización de registros',
   dropdown_options: 'Opciones de listas',
+  event_queue: 'Cola de eventos',
 }
 
 /** Objeto sincronizado (contrato E5, en minúsculas). */

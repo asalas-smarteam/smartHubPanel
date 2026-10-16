@@ -62,6 +62,8 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup()
+  delete document.documentElement.dataset.theme
+  window.localStorage.removeItem('panel-theme')
   server.resetHandlers()
   resetDb()
   resetTicketsTestState()

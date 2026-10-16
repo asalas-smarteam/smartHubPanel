@@ -17,7 +17,7 @@ function Thumbnail({ attachment, src, onOpen }) {
     <button
       type="button"
       onClick={onOpen}
-      className="overflow-hidden rounded-md border bg-white shadow-xs transition hover:shadow-md focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+      className="overflow-hidden rounded-md border bg-surface shadow-xs transition hover:shadow-md focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
       aria-label={`Ver ${attachment.filename}`}
     >
       <img

@@ -3,20 +3,28 @@ import { useCallback } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 import { DataTable } from '@/components/data-table/data-table'
+import { CopyableId } from '@/components/copyable-id'
 import { DetailItem } from '@/components/detail-item'
 import { DetailSection } from '@/components/detail-section'
 import { JsonViewer } from '@/components/json-viewer'
 import { ErrorState, LoadingState } from '@/components/page-states'
 import { Card, CardContent } from '@/components/ui/card'
 import { TenantGate } from '@/features/scope/tenant-picker'
+import { useCompanyName } from '@/features/scope/use-company-name'
 import { scopeSearch, useScope } from '@/features/scope/use-scope'
 import { ReportProblemButton } from '@/features/tickets/report-problem-button'
 import { formatDateTime, formatDuration } from '@/lib/dates'
-import { DEFAULT_PAGE_SIZE, parsePage, parsePageSize } from '@/lib/pagination'
+import { DEFAULT_PAGE_SIZE, parsePage, parsePageSize, RESULTS_WINDOW } from '@/lib/pagination'
 import { cn } from '@/lib/utils'
 
 import { useSync } from './api'
-import { COUNT_LABELS, OBJECT_TYPE_LABELS, syncHasProblem, TASK_TYPE_LABELS } from './constants'
+import {
+  COUNT_LABELS,
+  MISSING_TASK_LABEL,
+  OBJECT_TYPE_LABELS,
+  syncHasProblem,
+  TASK_TYPE_LABELS,
+} from './constants'
 import { SyncStatusBadge } from './sync-status-badge'
 
 const numberFormat = new Intl.NumberFormat('es')
@@ -60,7 +68,7 @@ const errorColumns = [
     meta: { cellClassName: 'whitespace-normal' },
     cell: ({ row }) => (
       <details className="group">
-        <summary className="cursor-pointer font-mono text-xs break-all text-foreground marker:text-brand-ink-soft">
+        <summary className="cursor-pointer font-mono text-xs break-all text-foreground marker:text-subtle-foreground">
           {errorPreview(row.original)}
         </summary>
         <JsonViewer
@@ -73,6 +81,67 @@ const errorColumns = [
     ),
   },
 ]
+
+/** Registro del error; con `eventId` (plan 4g, opcional) enlaza al detalle del evento. */
+function ErrorRecord({ item }) {
+  const scope = useScope()
+  const text = item.record ?? (item.eventId ? 'Ver evento' : '—')
+  if (typeof item.eventId !== 'string' || !item.eventId) return text
+  return (
+    <Link
+      to={`/eventos/${encodeURIComponent(item.eventId)}${scopeSearch(scope)}`}
+      className="text-link underline-offset-4 hover:underline"
+    >
+      {text}
+    </Link>
+  )
+}
+
+// Vista de cliente (plan 5 del backend, G4): cada error llega como { record, message } y, si el
+// backend lo agrega, `eventId`.
+const clientErrorColumns = [
+  {
+    id: 'record',
+    header: 'Registro',
+    meta: { cellClassName: 'font-mono text-xs' },
+    cell: ({ row }) => <ErrorRecord item={row.original} />,
+  },
+  {
+    id: 'message',
+    header: 'Mensaje',
+    meta: { cellClassName: 'whitespace-normal' },
+    cell: ({ row }) => row.original.message ?? '—',
+  },
+]
+
+const CLIENT_ERROR_KEYS = ['record', 'message', 'eventId']
+
+const isClientError = (item) =>
+  item !== null &&
+  typeof item === 'object' &&
+  !Array.isArray(item) &&
+  Object.keys(item).every((key) => CLIENT_ERROR_KEYS.includes(key))
+
+/** `{ summary }` de la vista de cliente (G4): se muestra como texto, no como JSON. */
+const isSummary = (value) =>
+  value !== null &&
+  typeof value === 'object' &&
+  Object.keys(value).length === 1 &&
+  typeof value.summary === 'string'
+
+/**
+ * Vacío de la tabla de errores. Con fallidos y sin detalle (p. ej. corridas de la cola de eventos
+ * que solo guardan el resumen) no se dice "no tuvo errores": se explica que falta el detalle.
+ */
+function errorsEmptyState(failed) {
+  if (!failed) return { emptyTitle: 'Esta corrida no tuvo errores' }
+  return {
+    emptyTitle: 'Sin detalle de errores',
+    emptyDescription: `La corrida registró ${numberFormat.format(failed)} ${
+      failed === 1 ? 'fallido' : 'fallidos'
+    }, pero no guardó el detalle. Si necesitas ayuda, reporta el problema: el id de la corrida va incluido.`,
+  }
+}
 
 function Counters({ counts }) {
   return (
@@ -98,6 +167,7 @@ function Counters({ counts }) {
 export function SyncPage() {
   const { id } = useParams()
   const scope = useScope()
+  const companyName = useCompanyName(scope)
   const { errorsPage, errorsPageSize, setErrorsPagination } = useErrorsPagination()
   const sync = useSync(scope, id, { errorsPage, errorsPageSize })
 
@@ -146,15 +216,18 @@ export function SyncPage() {
         <div className="flex flex-wrap items-center gap-2">
           <SyncStatusBadge status={data.status} />
           {scope.picksTenant && (
-            <span className="text-sm text-muted-foreground">Empresa {scope.tenantKey}</span>
+            <span className="text-sm text-muted-foreground">Empresa {companyName ?? '…'}</span>
           )}
         </div>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{data.task.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {data.task?.name ?? MISSING_TASK_LABEL}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              {TASK_TYPE_LABELS[data.task.type]}
-              {data.objectType && ` · ${OBJECT_TYPE_LABELS[data.objectType]}`}
+              {[TASK_TYPE_LABELS[data.task?.type], OBJECT_TYPE_LABELS[data.objectType]]
+                .filter(Boolean)
+                .join(' · ')}
             </p>
           </div>
           {syncHasProblem(data) && <ReportProblemButton kind="sync" id={data.id} />}
@@ -168,6 +241,9 @@ export function SyncPage() {
             <DetailItem label="Fin">{formatDateTime(data.finishedAt, 'En curso')}</DetailItem>
             <DetailItem label="Duración">
               {formatDuration(data.startedAt, data.finishedAt, '—')}
+            </DetailItem>
+            <DetailItem label="Id">
+              <CopyableId id={data.id} />
             </DetailItem>
           </dl>
         </CardContent>
@@ -192,7 +268,9 @@ export function SyncPage() {
 
       {message !== null && message !== undefined && (
         <DetailSection title="Mensaje de error">
-          {typeof message === 'object' ? (
+          {isSummary(message) ? (
+            <p className="text-sm leading-relaxed text-status-error-fg">{message.summary}</p>
+          ) : typeof message === 'object' ? (
             <JsonViewer data={message} label="Mensaje de error" expandAll />
           ) : (
             <p className="text-sm leading-relaxed whitespace-pre-wrap text-status-error-fg">
@@ -208,7 +286,16 @@ export function SyncPage() {
         </h2>
         <DataTable
           label="Errores de la corrida"
-          columns={errorColumns}
+          rowHref={(item) =>
+            typeof item?.eventId === 'string' && item.eventId
+              ? `/eventos/${encodeURIComponent(item.eventId)}${scopeSearch(scope)}`
+              : undefined
+          }
+          columns={
+            data.errors.items.length > 0 && data.errors.items.every(isClientError)
+              ? clientErrorColumns
+              : errorColumns
+          }
           data={data.errors}
           page={errorsPage}
           pageSize={errorsPageSize}
@@ -216,7 +303,9 @@ export function SyncPage() {
           isFetching={sync.isFetching}
           error={sync.error}
           onRetry={sync.refetch}
-          emptyTitle="Esta corrida no tuvo errores"
+          {...errorsEmptyState(data.counts.failed)}
+          maxResults={RESULTS_WINDOW}
+          windowHint="Los demás errores no se pueden paginar desde el panel."
         />
       </section>
     </div>

@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { DEMO_ACCOUNTS, renderApp } from '@/test/render'
-import { recordRequests } from '@/test/requests'
+import { isBulkPage, recordRequests } from '@/test/requests'
 
 const client = DEMO_ACCOUNTS.clienteUsuario.email // ACME
 const staff = DEMO_ACCOUNTS.smarteam.email
@@ -19,9 +19,10 @@ const bodyRows = (table) => within(table).getAllByRole('row').slice(1)
 
 describe('Eventos: cliente', () => {
   it('lista los eventos de su empresa, del más reciente al más antiguo, con estado y reintentos', async () => {
-    const requests = recordRequests('/api/events')
+    const requests = recordRequests('/api/events', undefined, { ignore: isBulkPage })
     const { table } = await openEvents()
-    expect(screen.getByText('45 resultados')).toBeInTheDocument()
+    // 45 eventos recientes + 680 del historial del Inicio (seed-events.js).
+    expect(screen.getByText('725 resultados')).toBeInTheDocument()
     expect(requests.at(-1).url.searchParams.get('page')).toBe('1')
     expect(screen.queryByRole('combobox', { name: 'Empresa' })).not.toBeInTheDocument()
 
@@ -37,7 +38,7 @@ describe('Eventos: cliente', () => {
   })
 
   it('filtros: estado y tipo con nombres de la API, vuelven a la página 1 y quedan en la URL', async () => {
-    const requests = recordRequests('/api/events')
+    const requests = recordRequests('/api/events', undefined, { ignore: isBulkPage })
     const { user, router } = await openEvents('/eventos?page=2')
     await user.click(screen.getByRole('combobox', { name: 'Estado' }))
     await user.click(await screen.findByRole('option', { name: 'Creado en destino' }))
@@ -55,7 +56,7 @@ describe('Eventos: cliente', () => {
   })
 
   it('referencia: se aplica con Enter; fechas: from/to en UTC desde la hora local (E3)', async () => {
-    const requests = recordRequests('/api/events')
+    const requests = recordRequests('/api/events', undefined, { ignore: isBulkPage })
     const { user, router, table } = await openEvents()
     const reference = within(bodyRows(table)[0]).getAllByRole('cell')[2].textContent
 
@@ -78,7 +79,9 @@ describe('Eventos: cliente', () => {
 
 describe('Eventos: Smarteam', () => {
   it('sin empresa elegida muestra el selector y no pide eventos; al elegir, usa la ruta por empresa', async () => {
-    const requests = recordRequests('/api/staff/tenants/INITECH/events')
+    const requests = recordRequests('/api/staff/tenants/INITECH/events', undefined, {
+      ignore: isBulkPage,
+    })
     const { user, router } = renderApp({ route: '/eventos', session: staff })
     expect(await screen.findByText('Elige una empresa para ver sus eventos')).toBeInTheDocument()
     expect(screen.queryByRole('table', { name: 'Eventos' })).not.toBeInTheDocument()

@@ -11,12 +11,16 @@ export const tenantSchema = z.object({
 
 const tenantsResponseSchema = z.object({ items: z.array(tenantSchema) })
 
-/** Empresas para los selectores (supuesto C7: GET /api/staff/tenants, sin paginar). */
-export function useTenants() {
+/**
+ * Empresas para los selectores (supuesto C7: GET /api/staff/tenants, sin paginar).
+ * Solo Smarteam puede pedirlas: las pantallas compartidas pasan `enabled: false` al cliente.
+ */
+export function useTenants({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['staff', 'tenants'],
     queryFn: ({ signal }) =>
       apiFetch('/staff/tenants', { signal, schema: tenantsResponseSchema }).then((r) => r.items),
     staleTime: 5 * 60 * 1000,
+    enabled,
   })
 }

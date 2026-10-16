@@ -26,6 +26,14 @@ describe('can()', () => {
   it('un permiso que el front no conoce nunca habilita nada', () => {
     expect(can(['algo.nuevo'], 'algo.nuevo')).toBe(false)
   })
+
+  it('con una lista basta tener cualquiera de ellos (p. ej. Métricas)', () => {
+    const metrics = [PERMISSIONS.TICKETS_READ, PERMISSIONS.STAFF_TICKETS]
+    expect(can(['tickets.read'], metrics)).toBe(true)
+    expect(can(['staff.tickets'], metrics)).toBe(true)
+    expect(can(['events.read'], metrics)).toBe(false)
+    expect(can(['tickets.read'], [])).toBe(false)
+  })
 })
 
 describe('<Can>', () => {

@@ -75,7 +75,7 @@ export function RedirectIfAuthenticated() {
   )
 }
 
-/** Oculta la sección si falta el permiso. Es solo UI: la API aplica la regla real. */
+/** Oculta la sección si falta el permiso (o todos los de una lista). Es solo UI: la API aplica la regla real. */
 export function RequirePermission({ permission, children }) {
   const { can } = usePermissions()
   if (!can(permission)) return <ForbiddenState />

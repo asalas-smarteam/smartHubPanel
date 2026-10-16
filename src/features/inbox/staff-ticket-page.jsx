@@ -1,5 +1,5 @@
 import { CheckCircle2Icon, ClockIcon, RotateCcwIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { toast } from 'sonner'
 
@@ -28,6 +28,18 @@ export function StaffTicketPage() {
     id,
   )
   const [resolveOpen, setResolveOpen] = useState(false)
+
+  // Abrir un ticket "abierto" lo pasa a "En progreso" (plan 4l). Una sola vez por ticket; si la
+  // API lo rechaza (409), queda como estaba y responder lo sigue pasando a "En progreso".
+  const startProgress = setStatus.mutate
+  const autoStarted = useRef(null)
+  const status = ticket.data?.status
+  useEffect(() => {
+    const key = `${tenantKey}/${id}`
+    if (status !== 'abierto' || autoStarted.current === key) return
+    autoStarted.current = key
+    startProgress('en_progreso')
+  }, [status, tenantKey, id, startProgress])
 
   if (ticket.isPending) return <LoadingState />
   if (ticket.isError) {
@@ -69,7 +81,7 @@ export function StaffTicketPage() {
         {data.context && (
           <Card className="gap-0 py-4">
             <CardContent>
-              <TicketContext context={data.context} />
+              <TicketContext context={data.context} tenantKey={data.tenantKey} />
             </CardContent>
           </Card>
         )}

@@ -153,6 +153,8 @@ export const staffTicketHandlers = [
     if (response) return response
     const { to } = await readJson(request)
     const allowed =
+      // Abrir el ticket lo pasa a "En progreso" (plan 4l: el backend suma esta transición).
+      (ticket.status === 'abierto' && to === 'en_progreso') ||
       (ticket.status === 'en_progreso' && to === 'esperando_cliente') ||
       (ticket.status === 'resuelto' && to === 'en_progreso')
     if (!allowed) return errorResponse(409, 'invalid_transition')

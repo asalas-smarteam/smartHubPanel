@@ -6,6 +6,8 @@ export const EVENT_STATUSES = [
   'destination_created_origin_error',
   'completed',
   'errored',
+  // Lo calcula el front (plan 4k-bis): error que un reintento posterior dejó bien.
+  'corrected',
 ]
 
 export const EVENT_STATUS_LABELS = {
@@ -15,7 +17,11 @@ export const EVENT_STATUS_LABELS = {
   destination_created_origin_error: 'Creado en destino con error al actualizar el origen',
   completed: 'Completado',
   errored: 'Con error',
+  corrected: 'Corregido',
 }
+
+/** Estado que el backend no tradujo (`status: null`). */
+export const UNKNOWN_STATUS_LABEL = 'Desconocido'
 
 /** Variante de la insignia (src/components/ui/badge.jsx). */
 export const EVENT_STATUS_VARIANT = {
@@ -25,6 +31,7 @@ export const EVENT_STATUS_VARIANT = {
   destination_created_origin_error: 'warning',
   completed: 'success',
   errored: 'error',
+  corrected: 'corrected',
 }
 
 /** Estados en los que tiene sentido "Reportar problema". */
@@ -36,6 +43,10 @@ export const EVENT_TYPE_LABELS = {
   createQuotation: 'Crear cotización',
   updateQuotation: 'Actualizar cotización',
   updateDealStage: 'Cambiar etapa del negocio',
+  // Plan 4m: tipos que el backend ya procesa. Nombres de 31 caracteres o menos (hoja de Excel).
+  convertQuotationToOrder: 'Convertir cotización en pedido',
+  purchaseQuotation: 'Cotización de compra',
+  inventoryTransferRequest: 'Traslado de inventario',
 }
 
 export const eventTypeLabel = (type) => EVENT_TYPE_LABELS[type] ?? type

@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { CopyableId } from '@/components/copyable-id'
 import { FormAlert } from '@/components/form-alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -131,11 +132,10 @@ export function NewTicketPage() {
             <FormAlert>{formError}</FormAlert>
 
             {context && (
-              <div className="flex flex-col gap-2 rounded-md border border-brand-blue-pale bg-brand-paper-tint px-3 py-2 text-sm">
-                <p className="flex items-center gap-2">
-                  <LinkIcon className="size-4 text-brand-royal" aria-hidden="true" />
-                  Se enlazará {contextText.the}{' '}
-                  <span className="font-mono text-xs">{context.contextId}</span>
+              <div className="flex flex-col gap-2 rounded-md border border-notice-border bg-notice px-3 py-2 text-sm">
+                <p className="flex flex-wrap items-center gap-2">
+                  <LinkIcon className="size-4 text-icon" aria-hidden="true" />
+                  Se enlazará {contextText.the} <CopyableId id={context.contextId} />
                 </p>
                 {!contextMissing && <LinkedRecordSummary context={context} record={record} />}
                 {contextMissing && (

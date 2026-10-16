@@ -1,18 +1,29 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router'
 
+import { DurationSummary } from '@/components/charts/duration-summary'
 import { DataTable } from '@/components/data-table/data-table'
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { FilterSelect } from '@/components/filter-select'
 import { TextFilter } from '@/components/text-filter'
+import { CauseLabel } from '@/features/causes/cause-label'
 import { TenantGate, TenantPicker } from '@/features/scope/tenant-picker'
+import { useCompanyName } from '@/features/scope/use-company-name'
 import { scopeSearch, useScope } from '@/features/scope/use-scope'
 import { formatDateTime } from '@/lib/dates'
-import { usePaginationParams } from '@/lib/pagination'
+import { formatNumber } from '@/lib/format'
+import { DATE_WINDOW_HINT, pickOption, RESULTS_WINDOW, usePaginationParams } from '@/lib/pagination'
+import { cn } from '@/lib/utils'
 
-import { useEvents } from './api'
-import { EVENT_STATUS_OPTIONS, EVENT_TYPE_OPTIONS, eventTypeLabel } from './constants'
+import { DURATIONS_LIMIT, FINISHED_STATUSES, useEventDurations, useEvents } from './api'
+import {
+  EVENT_STATUS_OPTIONS,
+  EVENT_STATUSES,
+  EVENT_TYPE_OPTIONS,
+  eventTypeLabel,
+} from './constants'
 import { EventStatusBadge } from './event-status-badge'
+import { ExportEventsButton } from './export-button'
 
 const linkClass =
   'font-medium text-foreground underline-offset-4 hover:text-primary hover:underline'
@@ -64,14 +75,27 @@ function buildColumns(search) {
       id: 'lastError',
       header: 'Último error',
       meta: { cellClassName: 'max-w-72' },
-      cell: ({ row }) =>
-        row.original.lastError ? (
-          <span className="block truncate text-status-error-fg" title={row.original.lastError}>
-            {row.original.lastError}
-          </span>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        ),
+      cell: ({ row }) => {
+        const { cause, lastError, status } = row.original
+        if (!cause && !lastError) return <span className="text-muted-foreground">—</span>
+        return (
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {cause && <CauseLabel cause={cause} className="text-xs" />}
+            {lastError && (
+              <span
+                className={cn(
+                  'block truncate',
+                  // Un error ya corregido no se marca en rojo (plan 4k).
+                  status === 'corrected' ? 'text-muted-foreground' : 'text-status-error-fg',
+                )}
+                title={lastError}
+              >
+                {lastError}
+              </span>
+            )}
+          </div>
+        )
+      },
     },
   ]
 }
@@ -81,23 +105,37 @@ export function EventsPage() {
   const scope = useScope()
   const { page, pageSize, setPagination, setFilter, getFilter } = usePaginationParams()
   const filters = {
-    status: getFilter('status'),
+    // Solo estados conocidos: el backend responde 400 a los demás.
+    status: pickOption(getFilter('status'), EVENT_STATUSES),
     type: getFilter('type'),
     reference: getFilter('referencia'),
     desde: getFilter('desde'),
     hasta: getFilter('hasta'),
   }
   const events = useEvents(scope, { page, pageSize, ...filters })
+  const durations = useEventDurations(scope, filters)
+  const companyName = useCompanyName(scope)
   const search = scopeSearch(scope)
   const columns = useMemo(() => buildColumns(search), [search])
+  const rowHref = useCallback((row) => `/eventos/${encodeURIComponent(row.id)}${search}`, [search])
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Eventos</h1>
-        <p className="text-sm text-muted-foreground">
-          Documentos que la integración procesó, del más reciente al más antiguo.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Eventos</h1>
+          <p className="text-sm text-muted-foreground">
+            Documentos que la integración procesó, del más reciente al más antiguo.
+          </p>
+        </div>
+        {scope.ready && (
+          <ExportEventsButton
+            scope={scope}
+            filters={filters}
+            total={events.data?.total}
+            companyName={companyName}
+          />
+        )}
       </div>
 
       {scope.picksTenant && !scope.ready ? (
@@ -137,7 +175,29 @@ export function EventsPage() {
             />
           </div>
 
+          {events.data?.capped && (
+            <p role="note" className="text-sm text-muted-foreground">
+              Se revisaron los 1.000 errores más recientes del filtro. Acota con las fechas para ver
+              el resto.
+            </p>
+          )}
+
+          <DurationSummary
+            query={durations}
+            title="Duración promedio por tipo"
+            description="Desde que llega el evento hasta su último cambio, con la espera en cola; solo eventos terminados."
+            cappedNote={`Se usaron los ${formatNumber(DURATIONS_LIMIT)} más recientes.`}
+            noun={{ one: 'evento', other: 'eventos' }}
+            unavailable={
+              filters.status && !FINISHED_STATUSES.includes(filters.status)
+                ? 'Los eventos en cola o procesándose todavía no terminaron.'
+                : null
+            }
+            empty="No hay eventos terminados con estos filtros."
+          />
+
           <DataTable
+            rowHref={rowHref}
             label="Eventos"
             columns={columns}
             data={events.data}
@@ -149,6 +209,8 @@ export function EventsPage() {
             error={events.error}
             onRetry={events.refetch}
             emptyTitle="No hay eventos con estos filtros"
+            maxResults={RESULTS_WINDOW}
+            windowHint={DATE_WINDOW_HINT}
           />
         </>
       )}

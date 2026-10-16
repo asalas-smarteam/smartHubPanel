@@ -18,12 +18,14 @@ export const PERMISSIONS = Object.freeze({
 const KNOWN_PERMISSIONS = new Set(Object.values(PERMISSIONS))
 
 /**
- * ¿La lista de permisos incluye `permission`? Los permisos que el front no conoce se ignoran.
+ * ¿La lista de permisos incluye `permission`? Con una lista de permisos, basta cualquiera.
+ * Los permisos que el front no conoce se ignoran.
  * Es solo para mostrar u ocultar UI: la regla real la aplica la API.
  * @param {string[]} permissions
- * @param {string} permission
+ * @param {string | string[]} permission
  */
 export function can(permissions, permission) {
+  if (Array.isArray(permission)) return permission.some((one) => can(permissions, one))
   return KNOWN_PERMISSIONS.has(permission) && permissions.includes(permission)
 }
 

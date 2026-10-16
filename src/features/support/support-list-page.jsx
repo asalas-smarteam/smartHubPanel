@@ -9,7 +9,8 @@ import { PERMISSIONS } from '@/features/auth/permissions'
 import { CATEGORY_OPTIONS, STATUS_OPTIONS } from '@/features/tickets/options'
 import { CategoryLabel, NewsDot, StatusBadge } from '@/features/tickets/status-badge'
 import { formatDateTime, formatRelative } from '@/lib/dates'
-import { usePaginationParams } from '@/lib/pagination'
+import { TICKET_CATEGORIES, TICKET_STATUSES } from '@/features/tickets/constants'
+import { pickOption, usePaginationParams } from '@/lib/pagination'
 
 import { useSupportTickets } from './api'
 
@@ -83,10 +84,13 @@ function NewTicketButton() {
   )
 }
 
+/** Toda la fila abre el ticket (plan 4k). */
+const ticketHref = (ticket) => `/soporte/${ticket.id}`
 export function SupportListPage() {
   const { page, pageSize, setPagination, setFilter, getFilter } = usePaginationParams()
-  const status = getFilter('status')
-  const category = getFilter('category')
+  // Solo valores conocidos: el backend responde 400 a los demás.
+  const status = pickOption(getFilter('status'), TICKET_STATUSES)
+  const category = pickOption(getFilter('category'), TICKET_CATEGORIES)
   const tickets = useSupportTickets({ page, pageSize, status, category })
   const filtered = Boolean(status || category)
 
@@ -121,6 +125,7 @@ export function SupportListPage() {
       </div>
 
       <DataTable
+        rowHref={ticketHref}
         label="Tickets"
         columns={columns}
         data={tickets.data}

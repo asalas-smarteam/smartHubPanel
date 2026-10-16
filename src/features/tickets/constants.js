@@ -44,7 +44,8 @@ export const TEXT_MAX = 5000
 
 /**
  * Acciones de Smarteam disponibles por estado (solo transiciones del spec).
- * Responder en `abierto` lo pasa a `en_progreso` (lo hace el servidor).
+ * Abrir el detalle en `abierto` lo pasa a `en_progreso` (lo pide el front, plan 4l); responder
+ * en `abierto` también (lo hace el servidor).
  */
 export const STAFF_ACTIONS = {
   abierto: { reply: true, waitForClient: false, resolve: true, rework: false },

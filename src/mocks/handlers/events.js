@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 
-import { EVENT_STATUS_MAP, tenantEvents, toApiEvent } from '../operations'
+import { EVENT_STATUS_MAP, tenantEvents, toApiEvent, toApiExchange } from '../operations'
 import { permissionsFor } from '../permissions'
 import { bothScopes, inRange, readDateRange, resolveScope } from './scope'
 import { paginate, readPagination } from './ticket-utils'
@@ -18,6 +18,13 @@ export const eventHandlers = [
     const query = new URL(request.url).searchParams
     const paging = readPagination(query)
     if (!paging) return errorResponse(400, 'validation_error', 'Paginación inválida.')
+    if (paging.page * paging.pageSize > 10_000) {
+      return errorResponse(
+        400,
+        'validation_error',
+        'La página pedida es demasiado alta. Usa los filtros para acotar la lista.',
+      )
+    }
     const status = query.get('status')
     if (status && !API_STATUSES.has(status)) {
       return errorResponse(400, 'validation_error', 'Estado inválido.')
@@ -49,6 +56,10 @@ export const eventHandlers = [
     // payload y audit: solo en la ruta de Smarteam y con staff.events.raw.
     const withRaw =
       params.tenantKey !== undefined && permissionsFor(scope.user).includes('staff.events.raw')
-    return HttpResponse.json(toApiEvent(raw, { withRaw }))
+    const client = params.tenantKey === undefined
+    return HttpResponse.json({
+      ...toApiEvent(raw, { withRaw }),
+      exchange: toApiExchange(raw, { client }),
+    })
   }),
 ]

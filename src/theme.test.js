@@ -1,25 +1,34 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// Verifica el contraste (WCAG 2.x) de los colores del tema que vive en src/index.css.
-// Si alguien cambia un color y rompe la legibilidad, este test falla.
+// Contraste (WCAG 2.x) de los DOS temas de src/index.css, en el peor caso: vidrio con la mancha
+// de color más intensa del fondo detrás. Si alguien cambia un color y rompe la legibilidad,
+// este test falla.
 const css = readFileSync(path.join(process.cwd(), 'src', 'index.css'), 'utf8')
 
-function readVar(name) {
-  const match = css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`))
-  if (!match) throw new Error(`No encontré --${name} con un color hex en index.css`)
-  return match[1]
+const BLOCKS = {
+  dark: /:root\[data-theme='dark'\] \{([\s\S]*?)\n\}/,
+  light: /:root\[data-theme='light'\] \{([\s\S]*?)\n\}/,
 }
 
-function readAlpha(utility) {
-  const block = css.match(new RegExp(`@utility ${utility} \\{([^}]*)\\}`))
-  if (!block) throw new Error(`No encontré @utility ${utility}`)
-  const rgb = block[1].match(/background-color:\s*rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)/)
-  return { rgb: rgb.slice(1, 4).map(Number), alpha: Number(rgb[4]) }
+function readVar(theme, name) {
+  const block = css.match(BLOCKS[theme])?.[1]
+  if (!block) throw new Error(`No encontré el bloque del tema ${theme}`)
+  const match = block.match(new RegExp(`--${name}:\\s*([^;]+);`))
+  if (!match) throw new Error(`No encontré --${name} en el tema ${theme}`)
+  return parseColor(match[1].trim())
 }
 
-const hexToRgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+/** `#rrggbb` o `rgb(r g b / a)` → { rgb, a }. */
+function parseColor(value) {
+  if (value.startsWith('#'))
+    return { rgb: [1, 3, 5].map((i) => parseInt(value.slice(i, i + 2), 16)), a: 1 }
+  const m = value.match(/rgb\((\d+) (\d+) (\d+)(?: \/ ([\d.]+))?\)/)
+  if (!m) throw new Error(`Color no soportado por el test: ${value}`)
+  return { rgb: m.slice(1, 4).map(Number), a: m[4] === undefined ? 1 : Number(m[4]) }
+}
+
 const channel = (c) => {
   const v = c / 255
   return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
@@ -29,104 +38,141 @@ const contrast = (a, b) => {
   const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m)
   return (x + 0.05) / (y + 0.05)
 }
-const mix = (fg, alpha, bg) => fg.map((v, i) => Math.round(v * alpha + bg[i] * (1 - alpha)))
+/** Color translúcido sobre un fondo opaco. */
+const over = ({ rgb, a }, bg) => rgb.map((v, i) => Math.round(v * a + bg[i] * (1 - a)))
 
-const brand = (name) => hexToRgb(readVar(`color-brand-${name}`))
-const theme = (name) => hexToRgb(readVar(name))
 const WHITE = [255, 255, 255]
 const AA = 4.5
+const NON_TEXT = 3 // barras de gráficos, íconos
 
-describe('contraste del tema (WCAG AA, texto normal)', () => {
-  const pairs = [
-    ['primary-foreground sobre primary', theme('primary-foreground'), theme('primary')],
-    ['blanco sobre el hover del primario', WHITE, theme('primary-hover')],
-    ['blanco sobre accent-strong (botón naranja)', WHITE, brand('accent-strong')],
-    ['accent-deep sobre blanco (insignia)', brand('accent-deep'), WHITE],
-    ['foreground sobre background', theme('foreground'), theme('background')],
-    ['muted-foreground sobre blanco', theme('muted-foreground'), WHITE],
-    ['muted-foreground sobre background', theme('muted-foreground'), theme('background')],
-    ['muted-foreground sobre muted', theme('muted-foreground'), theme('muted')],
-    ['secondary-foreground sobre secondary', theme('secondary-foreground'), theme('secondary')],
-    ['primary como enlace sobre background', theme('primary'), theme('background')],
-    ['navy sobre blue-pale (ítem activo)', brand('navy'), brand('blue-pale')],
-    [
-      'insignia "Esperando cliente"',
-      hexToRgb(readVar('color-status-waiting-fg')),
-      hexToRgb(readVar('color-status-waiting-bg')),
-    ],
-    [
-      'insignia "Resuelto" / "Activo"',
-      hexToRgb(readVar('color-status-done-fg')),
-      hexToRgb(readVar('color-status-done-bg')),
-    ],
-    [
-      'insignia "Inactivo"',
-      hexToRgb(readVar('color-status-muted-fg')),
-      hexToRgb(readVar('color-status-muted-bg')),
-    ],
-    ['insignia "Abierto" (blanco sobre royal)', WHITE, brand('royal')],
-    [
-      'insignia "Con error" (eventos y syncs)',
-      hexToRgb(readVar('color-status-error-fg')),
-      hexToRgb(readVar('color-status-error-bg')),
-    ],
-    [
-      'texto de error sobre blanco (contador "Fallidos")',
-      hexToRgb(readVar('color-status-error-fg')),
-      WHITE,
-    ],
+describe.each(['dark', 'light'])('tema %s', (theme) => {
+  const v = (name) => readVar(theme, name)
+  const background = v('background').rgb
+  // Fondos posibles detrás de un panel: el color base solo y con cada mancha de la marca.
+  const behinds = [
+    background,
+    ...['royal', 'blue', 'accent', 'mint'].map((b) => over(v(`blob-${b}`), background)),
   ]
+  const glassSurfaces = behinds.map((behind) => over(v('glass-bg'), behind))
+  const raisedSurfaces = behinds.map((behind) => over(v('glass-raised-to'), behind))
+  const minContrast = (fg, surfaces) =>
+    Math.min(...surfaces.map((surface) => contrast(fg, surface)))
 
-  it.each(pairs)('%s', (_name, fg, bg) => {
-    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(AA)
+  it.each([
+    'foreground',
+    'muted-foreground',
+    'subtle-foreground',
+    'link',
+    'destructive',
+    'positive',
+  ])('%s sobre vidrio (peor caso)', (name) => {
+    expect(minContrast(v(name).rgb, glassSurfaces)).toBeGreaterThanOrEqual(AA)
   })
 
-  it('el naranja base (#e8481c) NO alcanza AA con blanco: por eso los botones usan accent-strong', () => {
-    expect(contrast(WHITE, brand('accent'))).toBeLessThan(AA)
-  })
-})
+  it.each(['foreground', 'muted-foreground', 'subtle-foreground'])(
+    '%s sobre vidrio destacado',
+    (name) => {
+      expect(minContrast(v(name).rgb, raisedSurfaces)).toBeGreaterThanOrEqual(AA)
+    },
+  )
 
-describe('contraste sobre vidrio, en el peor caso', () => {
-  const background = theme('background')
-  // Peor caso: una mancha del fondo al 25 % detrás del vidrio.
-  const blobs = { royal: brand('royal'), accent: brand('accent'), blue: brand('blue') }
-
-  it.each(Object.entries(blobs))('texto sobre glass con mancha %s', (_name, blob) => {
-    const glass = readAlpha('glass')
-    const behind = mix(blob, 0.25, background)
-    const surface = mix(glass.rgb, glass.alpha, behind)
-    expect(contrast(theme('foreground'), surface)).toBeGreaterThanOrEqual(AA)
-    expect(contrast(theme('muted-foreground'), surface)).toBeGreaterThanOrEqual(AA)
-  })
-
-  it('texto sobre glass-strong en el login (fondo oscuro de la marca detrás)', () => {
-    const strong = readAlpha('glass-strong')
-    for (const behind of [brand('navy-deep'), brand('navy'), brand('royal')]) {
-      const surface = mix(strong.rgb, strong.alpha, behind)
-      expect(contrast(theme('foreground'), surface)).toBeGreaterThanOrEqual(AA)
-      expect(contrast(theme('muted-foreground'), surface)).toBeGreaterThanOrEqual(AA)
+  it('vidrio fuerte (login, diálogos) sobre el degradado de la marca y sobre la app', () => {
+    const hero = [
+      [11, 88, 211],
+      [5, 24, 73],
+    ]
+    const surfaces = [...hero, ...glassSurfaces].map((behind) => over(v('glass-strong-to'), behind))
+    for (const name of ['popover-foreground', 'muted-foreground']) {
+      expect(minContrast(v(name).rgb, surfaces)).toBeGreaterThanOrEqual(AA)
     }
   })
 
-  it('glass (60 %) NO alcanza AA sobre el fondo oscuro: por eso el login usa glass-strong', () => {
-    const glass = readAlpha('glass')
-    const surface = mix(glass.rgb, glass.alpha, brand('navy-deep'))
-    expect(contrast(theme('muted-foreground'), surface)).toBeLessThan(AA)
+  it('texto del aviso informativo sobre vidrio', () => {
+    const surfaces = glassSurfaces.map((surface) => over(v('notice'), surface))
+    expect(minContrast(v('foreground').rgb, surfaces)).toBeGreaterThanOrEqual(AA)
   })
 
-  it('texto blanco sobre glass-dark (menú) con el azul de marca detrás', () => {
-    const dark = readAlpha('glass-dark')
-    const surface = mix(dark.rgb, dark.alpha, brand('royal'))
-    expect(contrast(WHITE, surface)).toBeGreaterThanOrEqual(AA)
-    expect(contrast(brand('blue-pale'), surface)).toBeGreaterThanOrEqual(AA)
+  it.each(['done', 'waiting', 'muted', 'error', 'info', 'corrected'])('insignia %s', (name) => {
+    expect(contrast(v(`status-${name}-fg`).rgb, v(`status-${name}-bg`).rgb)).toBeGreaterThanOrEqual(
+      AA,
+    )
+  })
+
+  it('botones: principal, de marca y destructivo', () => {
+    expect(contrast(v('primary-foreground').rgb, v('primary').rgb)).toBeGreaterThanOrEqual(AA)
+    expect(contrast(WHITE, [214, 62, 20])).toBeGreaterThanOrEqual(AA) // brand-accent-strong
+    expect(contrast(WHITE, v('destructive-solid').rgb)).toBeGreaterThanOrEqual(AA)
+  })
+
+  it.each([
+    'chart-ok',
+    'chart-bad',
+    'chart-wait',
+    'chart-1',
+    'chart-2',
+    'chart-warn',
+    'icon',
+    'cause-deal',
+    'cause-fiscal',
+    'cause-master',
+    'cause-validation',
+    'cause-connectivity',
+    'cause-other',
+  ])('%s se distingue del vidrio (3:1)', (name) => {
+    expect(minContrast(v(name).rgb, glassSurfaces)).toBeGreaterThanOrEqual(NON_TEXT)
+  })
+
+  it('visor JSON sobre su superficie', () => {
+    const surfaces = glassSurfaces.map((surface) => over(v('surface'), surface))
+    for (const name of ['json-key', 'json-string', 'json-number', 'json-boolean', 'json-muted']) {
+      expect(minContrast(v(name).rgb, surfaces)).toBeGreaterThanOrEqual(AA)
+    }
+  })
+
+  it('menú lateral: texto blanco y el ítem activo', () => {
+    const surfaces = behinds.map((behind) => over(v('side-bg'), behind))
+    expect(minContrast(WHITE, surfaces)).toBeGreaterThanOrEqual(AA)
+    expect(contrast([5, 24, 73], [207, 226, 250])).toBeGreaterThanOrEqual(AA) // navy sobre blue-pale
   })
 })
 
 describe('respaldo sólido del vidrio', () => {
-  it.each(['glass', 'glass-strong', 'glass-dark'])('%s tiene respaldo', (utility) => {
-    const supports = css.match(/@supports not \(backdrop-filter: blur\(1px\)\) \{([\s\S]*?)\n\}/)
-    const reduced = css.match(/@media \(prefers-reduced-transparency: reduce\) \{([\s\S]*?)\n\}/)
-    expect(supports?.[1]).toContain(`.${utility} {`)
-    expect(reduced?.[1]).toContain(`.${utility} {`)
+  it.each(['glass', 'glass-raised', 'glass-strong', 'glass-dark'])(
+    '%s tiene respaldo',
+    (utility) => {
+      const supports = css.match(/@supports not \(backdrop-filter: blur\(1px\)\) \{([\s\S]*?)\n\}/)
+      const reduced = css.match(/@media \(prefers-reduced-transparency: reduce\) \{([\s\S]*?)\n\}/)
+      expect(supports?.[1]).toContain(`.${utility} {`)
+      expect(reduced?.[1]).toContain(`.${utility} {`)
+    },
+  )
+})
+
+// Los componentes usan tokens, nunca colores sueltos de un tema (se colarían en el otro).
+// El menú lateral (components/layout) y el degradado de las pantallas de acceso
+// (auth-shell) son oscuros en los dos temas: quedan fuera.
+describe('sin colores fijos de tema en los componentes', () => {
+  const root = path.join(process.cwd(), 'src')
+  const list = (dir) =>
+    readdirSync(dir).flatMap((name) => {
+      const full = path.join(dir, name)
+      return statSync(full).isDirectory() ? list(full) : [full]
+    })
+  const files = list(root).filter(
+    (file) =>
+      /\.jsx?$/.test(file) &&
+      !/\.test\.jsx?$/.test(file) &&
+      !file.includes(`${path.sep}mocks${path.sep}`) &&
+      !file.includes(`${path.sep}layout${path.sep}`) &&
+      !file.endsWith(path.join('auth', 'auth-shell.jsx')),
+  )
+  const banned =
+    /\b(bg-white(\/\d+)?|text-brand-navy|text-brand-royal|brand-ink-soft|brand-paper-tint|text-emerald-\d+|bg-brand-navy\/\d+|shadow-card)\b/
+
+  it('ningún archivo usa clases de un solo tema', () => {
+    const offenders = files
+      .filter((file) => banned.test(readFileSync(file, 'utf8')))
+      .map((file) => path.relative(root, file))
+    expect(offenders).toEqual([])
   })
 })

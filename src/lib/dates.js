@@ -64,3 +64,43 @@ export function formatDuration(startIso, endIso, empty = '—') {
   const hours = Math.floor(minutes / 60)
   return `${hours} h ${String(minutes % 60).padStart(2, '0')} min`
 }
+
+/** Zona horaria IANA del navegador (`America/Costa_Rica`); `UTC` si no se puede saber. */
+export function browserTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  } catch {
+    return 'UTC'
+  }
+}
+
+/**
+ * Período "últimos N días" para los tableros (F1, F7), incluyendo hoy, en hora local:
+ * `from` = inicio de hace N−1 días, `to` = inicio de mañana (exclusivo), y la zona del navegador.
+ * @param {number} days
+ * @param {Date} [now]
+ */
+export function lastDaysRange(days, now = new Date()) {
+  const [year, month, date] = [now.getFullYear(), now.getMonth(), now.getDate()]
+  return {
+    from: new Date(year, month, date - (days - 1)).toISOString(),
+    to: new Date(year, month, date + 1).toISOString(),
+    tz: browserTimeZone(),
+  }
+}
+
+/** Día `YYYY-MM-DD` como rótulo corto: "mar 6". */
+export function formatDayLabel(day) {
+  return format(parseISO(day), 'EEE d', { locale: es }).replace('.', '')
+}
+
+/** Día `YYYY-MM-DD` como "28 sep". */
+export function formatShortDate(day) {
+  return format(parseISO(day), 'd MMM', { locale: es }).replace('.', '')
+}
+
+/** Fecha larga: "13 de septiembre de 2026". */
+export function formatLongDate(value) {
+  const date = typeof value === 'string' ? parseISO(value) : value
+  return isValid(date) ? format(date, "d 'de' MMMM 'de' yyyy", { locale: es }) : '—'
+}

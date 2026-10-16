@@ -1,5 +1,5 @@
 import { EVENT_STATUS_LABELS, eventTypeLabel } from '@/features/events/constants'
-import { SYNC_STATUS_LABELS } from '@/features/syncs/constants'
+import { MISSING_TASK_LABEL, SYNC_STATUS_LABELS } from '@/features/syncs/constants'
 
 function Line({ title, status, detail }) {
   return (
@@ -28,12 +28,14 @@ export function LinkedRecordSummary({ context, record }) {
       .filter(Boolean)
       .join(' · ')
     const detail = typeof data.errorMessage === 'string' ? data.errorMessage : null
-    return <Line title={data.task.name} status={status} detail={detail} />
+    return <Line title={data.task?.name ?? MISSING_TASK_LABEL} status={status} detail={detail} />
   }
   return (
     <Line
       title={eventTypeLabel(data.type)}
-      status={EVENT_STATUS_LABELS[data.status] ?? data.status}
+      status={[EVENT_STATUS_LABELS[data.status] ?? data.status, data.cause?.label]
+        .filter(Boolean)
+        .join(' · ')}
       detail={data.lastError}
     />
   )

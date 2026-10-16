@@ -43,7 +43,7 @@ export function InternalResolutionCard({ resolution, onSave }) {
     <Card className="gap-3 py-4" role="region" aria-label="Resolución interna">
       <CardHeader className="flex flex-row items-center justify-between gap-2 px-4">
         <CardTitle className="flex items-center gap-2 text-base">
-          <LockIcon className="size-4 text-brand-royal" aria-hidden="true" />
+          <LockIcon className="size-4 text-icon" aria-hidden="true" />
           Resolución interna
         </CardTitle>
         <Badge variant="info">Solo Smarteam</Badge>

@@ -9,7 +9,7 @@ export function Logo({ tone = 'dark', className }) {
     <span
       className={cn(
         'inline-flex items-baseline gap-1 text-xl font-extrabold tracking-tight',
-        tone === 'light' ? 'text-white' : 'text-brand-navy',
+        tone === 'light' ? 'text-white' : 'text-foreground',
         className,
       )}
     >

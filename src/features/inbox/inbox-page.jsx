@@ -7,7 +7,8 @@ import { useTenants } from '@/features/tenants/api'
 import { CATEGORY_OPTIONS, STATUS_OPTIONS } from '@/features/tickets/options'
 import { CategoryLabel, NewsDot, StatusBadge } from '@/features/tickets/status-badge'
 import { formatDateTime, formatRelative } from '@/lib/dates'
-import { usePaginationParams } from '@/lib/pagination'
+import { TICKET_CATEGORIES, TICKET_STATUSES } from '@/features/tickets/constants'
+import { pickOption, usePaginationParams } from '@/lib/pagination'
 
 import { useInboxSummary, useInboxTickets } from './api'
 import { InboxSummary } from './inbox-summary'
@@ -103,12 +104,16 @@ function Warnings({ warnings, tenants }) {
   )
 }
 
+/** Toda la fila abre el ticket (plan 4k). */
+const ticketHref = (ticket) => `/bandeja/${ticket.tenantKey}/${ticket.id}`
+
 /** Bandeja de Smarteam: todos los tickets de todos los tenants (S5). */
 export function InboxPage() {
   const { page, pageSize, setPagination, setFilter, getFilter } = usePaginationParams()
-  const status = getFilter('status')
+  // Solo valores conocidos: el backend responde 400 a los demás.
+  const status = pickOption(getFilter('status'), TICKET_STATUSES)
   const tenantKey = getFilter('tenantKey')
-  const category = getFilter('category')
+  const category = pickOption(getFilter('category'), TICKET_CATEGORIES)
 
   const tickets = useInboxTickets({ page, pageSize, status, tenantKey, category })
   const summary = useInboxSummary()
@@ -162,6 +167,7 @@ export function InboxPage() {
       <Warnings warnings={tickets.data?.warnings} tenants={tenants.data} />
 
       <DataTable
+        rowHref={ticketHref}
         label="Bandeja"
         columns={columns}
         data={tickets.data}

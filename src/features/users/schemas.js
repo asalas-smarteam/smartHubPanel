@@ -5,7 +5,7 @@ const email = z
   .trim()
   .min(1, 'Escribe el correo.')
   .pipe(z.email('Escribe un correo válido.'))
-const name = z.string().trim().min(1, 'Escribe el nombre.').max(120, 'Máximo 120 caracteres.')
+const name = z.string().trim().min(1, 'Escribe el nombre.').max(100, 'Máximo 100 caracteres.')
 const role = z.enum(['admin', 'usuario'], { error: 'Elige el rol.' })
 
 /** Alta de usuario: si es de cliente, empresa y rol son obligatorios. */

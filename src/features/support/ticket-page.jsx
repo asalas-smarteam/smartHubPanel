@@ -18,8 +18,8 @@ import { ReopenDialog } from './reopen-dialog'
 
 function Notice({ icon: Icon, children }) {
   return (
-    <div className="flex items-start gap-2 rounded-md border border-brand-blue-pale bg-brand-paper-tint px-3 py-2 text-sm">
-      <Icon className="mt-0.5 size-4 shrink-0 text-brand-royal" aria-hidden="true" />
+    <div className="flex items-start gap-2 rounded-md border border-notice-border bg-notice px-3 py-2 text-sm">
+      <Icon className="mt-0.5 size-4 shrink-0 text-icon" aria-hidden="true" />
       <div>{children}</div>
     </div>
   )

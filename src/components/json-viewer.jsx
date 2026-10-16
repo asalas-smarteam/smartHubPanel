@@ -8,16 +8,16 @@ import { cn } from '@/lib/utils'
 const panelStyles = {
   ...defaultStyles,
   container: 'font-mono text-xs leading-relaxed',
-  label: 'mr-1 font-semibold text-brand-navy',
-  clickableLabel: 'mr-1 cursor-pointer font-semibold text-brand-navy',
-  stringValue: 'text-emerald-800',
-  numberValue: 'text-brand-royal',
-  booleanValue: 'text-brand-accent-deep',
-  nullValue: 'text-brand-ink-soft',
-  undefinedValue: 'text-brand-ink-soft',
-  otherValue: 'text-brand-ink-soft',
-  punctuation: 'text-brand-ink-soft',
-  collapsedContent: `${defaultStyles.collapsedContent} text-brand-ink-soft`,
+  label: 'mr-1 font-semibold text-[var(--json-key)]',
+  clickableLabel: 'mr-1 cursor-pointer font-semibold text-[var(--json-key)]',
+  stringValue: 'text-[var(--json-string)]',
+  numberValue: 'text-[var(--json-number)]',
+  booleanValue: 'text-[var(--json-boolean)]',
+  nullValue: 'text-[var(--json-muted)]',
+  undefinedValue: 'text-[var(--json-muted)]',
+  otherValue: 'text-[var(--json-muted)]',
+  punctuation: 'text-[var(--json-muted)]',
+  collapsedContent: `${defaultStyles.collapsedContent} text-[var(--json-muted)]`,
   ariaLables: { collapseJson: 'Plegar', expandJson: 'Desplegar' },
 }
 
@@ -31,9 +31,7 @@ const expandFirstLevel = (level) => level < 1
 export function JsonViewer({ data, label = 'Datos JSON', className, expandAll = false }) {
   const isStructured = data !== null && typeof data === 'object'
   return (
-    <div
-      className={cn('max-h-96 overflow-auto rounded-md border bg-white/90 px-3 py-2', className)}
-    >
+    <div className={cn('max-h-96 overflow-auto rounded-md border bg-surface px-3 py-2', className)}>
       {isStructured ? (
         <JsonView
           data={data}

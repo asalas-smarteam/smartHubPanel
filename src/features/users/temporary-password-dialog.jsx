@@ -43,7 +43,7 @@ export function TemporaryPasswordDialog({ data, onClose }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <KeyRoundIcon className="size-5 text-brand-royal" aria-hidden="true" />
+            <KeyRoundIcon className="size-5 text-icon" aria-hidden="true" />
             Contraseña temporal
           </DialogTitle>
           <DialogDescription>

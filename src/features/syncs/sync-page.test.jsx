@@ -27,9 +27,10 @@ describe('Detalle de sync', () => {
     )
   })
 
-  it('error como objeto en el visor JSON; errores paginados aparte (errorsPage en la URL)', async () => {
-    const requests = recordRequests('/api/syncs/sync-acme-004')
-    const { user, router } = await openSync('/syncs/sync-acme-004')
+  // Smarteam ve el error crudo; el cliente, un resumen (plan 5 del backend, G4: backend-plan5.test).
+  it('Smarteam: error como objeto en el visor JSON; errores paginados aparte (errorsPage en la URL)', async () => {
+    const requests = recordRequests('/api/staff/tenants/ACME/syncs/sync-acme-004')
+    const { user, router } = await openSync('/syncs/sync-acme-004?empresa=ACME', staff)
     expect(
       within(screen.getByRole('region', { name: 'Mensaje de error' })).getByText(/BATCH_REJECTED/),
     ).toBeInTheDocument()
@@ -38,7 +39,7 @@ describe('Detalle de sync', () => {
     expect(await screen.findByText('60 resultados')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /página siguiente/i }))
     await waitFor(() => expect(requests.at(-1).url.searchParams.get('errorsPage')).toBe('2'))
-    expect(router.state.location.search).toBe('?errorsPage=2')
+    expect(router.state.location.search).toBe('?empresa=ACME&errorsPage=2')
     expect(await screen.findByText(/"record":"CLI-0026"/)).toBeInTheDocument()
   })
 

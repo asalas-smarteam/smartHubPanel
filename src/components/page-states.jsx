@@ -13,7 +13,7 @@ function StateBox({ icon: Icon, title, children, className }) {
         className,
       )}
     >
-      {Icon && <Icon className="size-8 text-brand-ink-soft" aria-hidden="true" />}
+      {Icon && <Icon className="size-8 text-subtle-foreground" aria-hidden="true" />}
       <p className="text-base font-semibold">{title}</p>
       {children && <div className="max-w-md text-sm text-muted-foreground">{children}</div>}
     </div>

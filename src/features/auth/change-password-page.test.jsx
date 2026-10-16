@@ -60,11 +60,13 @@ describe('cambio de contraseña obligatorio', () => {
     expect(router.state.location.pathname).toBe('/cambiar-contrasena')
   })
 
-  it('éxito → entra al panel (el cliente cae en Soporte)', async () => {
+  it('éxito → entra al panel (el cliente cae en el Inicio)', async () => {
     const { user, router } = await openChangePassword()
     await fill(user, { current: clienteAdmin.password, next: NEW_PASSWORD })
-    expect(await screen.findByRole('heading', { name: 'Soporte' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/soporte')
+    expect(
+      await screen.findByRole('heading', { name: 'Estado de la integración' }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/inicio')
     expect(await screen.findByText('Contraseña actualizada.')).toBeInTheDocument()
   })
 
@@ -93,8 +95,8 @@ describe('cambio de contraseña obligatorio', () => {
 
   it('sin cambio pendiente, /cambiar-contrasena lleva al inicio', async () => {
     const { router } = renderApp({ route: '/cambiar-contrasena', session: clienteUsuario.email })
-    await screen.findByRole('heading', { name: 'Soporte' })
-    expect(router.state.location.pathname).toBe('/soporte')
+    await screen.findByRole('heading', { name: 'Estado de la integración' })
+    expect(router.state.location.pathname).toBe('/inicio')
   })
 
   it('"Cerrar sesión" lleva a /login', async () => {

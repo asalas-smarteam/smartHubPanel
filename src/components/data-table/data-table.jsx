@@ -1,5 +1,6 @@
 import { rowPaginationFeature, tableFeatures, useTable } from '@tanstack/react-table'
 import { useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router'
 
 import { EmptyState, ErrorState } from '@/components/page-states'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -15,10 +16,39 @@ import { cn } from '@/lib/utils'
 
 import { DataTablePagination } from './data-table-pagination'
 
+const INTERACTIVE =
+  'a, button, input, select, textarea, label, summary, [role="button"], [role="combobox"], [role="checkbox"]'
+
+/** Clic en una fila con `rowHref`: abre el detalle salvo que el clic sea de otro control. */
+function openRow(event, href, navigate) {
+  if (event.defaultPrevented || event.target.closest(INTERACTIVE)) return
+  if (window.getSelection?.()?.toString()) return
+  const newTab = event.button === 1 || event.metaKey || event.ctrlKey
+  if (event.type === 'auxclick' && event.button !== 1) return
+  if (newTab) window.open(href, '_blank', 'noopener')
+  else navigate(href)
+}
+
+function LinkedRow({ href, children }) {
+  const navigate = useNavigate()
+  const open = (event) => openRow(event, href, navigate)
+  return (
+    <TableRow className="cursor-pointer" onClick={open} onAuxClick={open}>
+      {children}
+    </TableRow>
+  )
+}
+
+/** Fila del cuerpo; con `href`, toda la fila abre el detalle. */
+function BodyRow({ href, children }) {
+  return href ? <LinkedRow href={href}>{children}</LinkedRow> : <TableRow>{children}</TableRow>
+}
+
 // Estables a nivel de módulo (requisito de TanStack Table v9).
 const features = tableFeatures({ rowPaginationFeature })
 const EMPTY_ROWS = []
 const SKELETON_ROWS = 5
+const numberFormat = new Intl.NumberFormat('es', { useGrouping: 'always' })
 
 /**
  * Tabla con paginación del servidor (TanStack Table v9, `manualPagination`).
@@ -37,7 +67,14 @@ const SKELETON_ROWS = 5
  *   emptyDescription?: string,
  *   getRowId?: (row: object) => string,
  *   label: string,
+ *   maxResults?: number,
+ *   windowHint?: string,
+ *   rowHref?: (row: object) => string,
  * }} props
+ * `rowHref`: toda la fila abre esa ruta (el enlace de la celda se mantiene para teclado y
+ * lector de pantalla). No navega si el clic es sobre un control o hay texto seleccionado.
+ * `maxResults`: cuántos resultados deja recorrer la API (p. ej. 10 000); la paginación no pasa
+ * de ahí y, si hay más, se muestra un aviso con `windowHint` (cómo acotar la búsqueda).
  * Cada columna puede definir `meta.cellClassName` (p. ej. dejar que el título haga salto de línea).
  */
 export function DataTable({
@@ -54,6 +91,9 @@ export function DataTable({
   emptyDescription,
   getRowId,
   label,
+  maxResults,
+  windowHint,
+  rowHref,
 }) {
   const pagination = useMemo(() => ({ pageIndex: page - 1, pageSize }), [page, pageSize])
 
@@ -73,7 +113,7 @@ export function DataTable({
     features,
     columns,
     data: data?.items ?? EMPTY_ROWS,
-    rowCount: data?.total ?? 0,
+    rowCount: maxResults ? Math.min(data?.total ?? 0, maxResults) : (data?.total ?? 0),
     manualPagination: true,
     state: { pagination },
     onPaginationChange: handlePaginationChange,
@@ -127,18 +167,23 @@ export function DataTable({
           {!isPending &&
             !showError &&
             rows.map((row) => (
-              <TableRow key={row.id}>
+              <BodyRow key={row.id} href={rowHref?.(row.original)}>
                 {row.getAllCells().map((cell) => (
                   <TableCell key={cell.id} className={cell.column.columnDef.meta?.cellClassName}>
                     <table.FlexRender cell={cell} />
                   </TableCell>
                 ))}
-              </TableRow>
+              </BodyRow>
             ))}
         </TableBody>
       </Table>
       {!showError && (
         <DataTablePagination table={table} total={data?.total ?? 0} disabled={isPending} />
+      )}
+      {!showError && maxResults && (data?.total ?? 0) > maxResults && (
+        <p className="border-t px-4 py-2.5 text-xs text-muted-foreground">
+          Se pueden recorrer los primeros {numberFormat.format(maxResults)}. {windowHint}
+        </p>
       )}
     </div>
   )

@@ -10,6 +10,11 @@ const status = z.enum(TICKET_STATUSES)
 const category = z.enum(TICKET_CATEGORIES)
 const isoDate = z.string()
 const actorType = z.enum(['cliente', 'smarteam', 'ia'])
+/** Nombre de una persona; si el backend no lo tiene (null) se muestra "Sin nombre". */
+const personName = z
+  .string()
+  .nullable()
+  .transform((name) => name ?? 'Sin nombre')
 
 /** D1. Ítem de la lista del cliente. */
 export const ticketListItemSchema = z.object({
@@ -18,7 +23,7 @@ export const ticketListItemSchema = z.object({
   title: z.string(),
   category,
   status,
-  createdBy: z.object({ name: z.string(), role: z.string().nullable().optional() }),
+  createdBy: z.object({ name: personName, role: z.string().nullable().optional() }),
   openedAt: isoDate,
   lastActivityAt: isoDate,
   resolvedAt: isoDate.nullable(),
@@ -54,7 +59,7 @@ export const attachmentSchema = z.object({
 export const messageSchema = z.object({
   id: z.string(),
   authorType: actorType,
-  authorName: z.string(),
+  authorName: personName,
   body: z.string(),
   attachments: z.array(attachmentSchema),
   createdAt: isoDate,
@@ -65,7 +70,7 @@ export const statusHistorySchema = z.object({
   from: status.nullable(),
   to: status,
   byType: actorType,
-  byName: z.string(),
+  byName: personName,
   at: isoDate,
 })
 
@@ -94,7 +99,7 @@ export const staffTicketDetailSchema = ticketDetailSchema.extend({
     .object({
       text: z.string(),
       updatedAt: isoDate,
-      updatedBy: z.object({ name: z.string() }),
+      updatedBy: z.object({ name: personName }),
     })
     .nullable(),
 })

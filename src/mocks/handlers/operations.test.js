@@ -21,7 +21,7 @@ describe('mocks de eventos', () => {
   it('cliente: solo su empresa, ordenados por fecha, sin reportes de calidad y con nombres genéricos', async () => {
     signInAs(clientEmail)
     const page = await apiFetch('/events', { query: all, schema: eventPageSchema })
-    expect(page.total).toBe(45)
+    expect(page.total).toBe(725) // 45 recientes + 680 del historial del Inicio
     expect(page.items.every((event) => event.id.startsWith('ev-acme-'))).toBe(true)
     expect(page.items.some((event) => event.id.includes('-r0'))).toBe(false)
     const dates = page.items.map((event) => event.createdAt)
@@ -130,12 +130,12 @@ describe('mocks de syncs', () => {
   it('cliente: corridas de su empresa por inicio descendente, con "running" y tipos genéricos', async () => {
     signInAs(clientEmail)
     const page = await apiFetch('/syncs', { query: all, schema: syncPageSchema })
-    expect(page.total).toBe(30)
+    expect(page.total).toBe(36) // 30 corridas de tareas + 6 vueltas de la cola de eventos (G1)
     const dates = page.items.map((sync) => sync.startedAt)
     expect(dates).toEqual([...dates].sort().reverse())
     expect(page.items[0]).toMatchObject({ status: 'running', finishedAt: null })
     expect(new Set(page.items.map((sync) => sync.task.type))).toEqual(
-      new Set(['record_sync', 'dropdown_options']),
+      new Set(['record_sync', 'dropdown_options', 'event_queue']),
     )
     expect(page.items.find((sync) => sync.task.type === 'dropdown_options').objectType).toBeNull()
     const raw = JSON.stringify(page)
@@ -146,7 +146,12 @@ describe('mocks de syncs', () => {
   it('tareas (E8): solo id, nombre y tipo; filtrar por tarea, estado y fechas', async () => {
     signInAs(clientEmail)
     const tasks = await apiFetch('/sync-tasks', { schema: syncTasksSchema })
-    expect(tasks.items).toHaveLength(3)
+    expect(tasks.items).toHaveLength(4) // 3 tareas + la cola de eventos al final (G1)
+    expect(tasks.items.at(-1)).toEqual({
+      id: 'event_queue',
+      name: 'Cola de eventos',
+      type: 'event_queue',
+    })
     expect(JSON.stringify(tasks)).not.toContain('no-debe-salir')
     expect(Object.keys(tasks.items[0]).sort()).toEqual(['id', 'name', 'type'])
 
@@ -170,7 +175,13 @@ describe('mocks de syncs', () => {
 
   it('detalle: errores paginados aparte (errorsPage, errorsPageSize ≤ 100), error como objeto', async () => {
     signInAs(clientEmail)
-    const detail = await apiFetch('/syncs/sync-acme-004', {
+    // Cliente (G4): el error en objeto llega resumido y cada error solo con registro y mensaje.
+    const client = await apiFetch('/syncs/sync-acme-004', { schema: syncDetailSchema })
+    expect(client.errorMessage).toEqual({ summary: '60 error(es) en la corrida' })
+    expect(Object.keys(client.errors.items[0]).sort()).toEqual(['message', 'record'])
+
+    signInAs(staffEmail)
+    const detail = await apiFetch('/staff/tenants/ACME/syncs/sync-acme-004', {
       query: { errorsPage: 2, errorsPageSize: 25 },
       schema: syncDetailSchema,
     })
@@ -178,6 +189,7 @@ describe('mocks de syncs', () => {
     expect(detail.errors.items).toHaveLength(25)
     expect(detail.errorMessage).toMatchObject({ code: 'BATCH_REJECTED' })
 
+    signInAs(clientEmail)
     const linked = await apiFetch('/syncs/sync-acme-001')
     expect(linked).toMatchObject({ status: 'errored', counts: { failed: 3 } })
     expect(linked.errors.total).toBe(3)
@@ -192,7 +204,11 @@ describe('mocks de syncs', () => {
   it('Smarteam: tareas y syncs por empresa; empresa inexistente → 404', async () => {
     signInAs(staffEmail)
     const tasks = await apiFetch('/staff/tenants/GLOBEX/sync-tasks')
-    expect(tasks.items.map((task) => task.name)).toEqual(['Productos', 'Empresas'])
+    expect(tasks.items.map((task) => task.name)).toEqual([
+      'Productos',
+      'Empresas',
+      'Cola de eventos',
+    ])
     const syncs = await apiFetch('/staff/tenants/INITECH/syncs', { query: all })
     expect(syncs.total).toBe(5)
     expect(await fail(apiFetch('/staff/tenants/NOPE/syncs'))).toMatchObject({ status: 404 })

@@ -1,11 +1,12 @@
 import { cn } from '@/lib/utils'
 
 /**
- * Fondo fijo de la app: color base claro y manchas difusas con los colores de la marca.
- * Es estático (sin animaciones) y no recibe eventos.
- * @param {{ variant?: 'light' | 'hero', className?: string }} props
+ * Fondo fijo de la app: color base del tema y manchas difusas con los colores de la marca.
+ * La intensidad de cada mancha sale del tema (`--blob-*` en src/index.css). Estático y sin eventos.
+ * `hero` (login): degradado azul de la marca en los dos temas.
+ * @param {{ variant?: 'app' | 'hero', className?: string }} props
  */
-export function AppBackground({ variant = 'light', className }) {
+export function AppBackground({ variant = 'app', className }) {
   if (variant === 'hero') {
     return (
       <div
@@ -28,9 +29,10 @@ export function AppBackground({ variant = 'light', className }) {
       className={cn('pointer-events-none fixed inset-0 -z-10 bg-background', className)}
       style={{
         backgroundImage: [
-          'radial-gradient(900px 600px at 100% 0%, rgb(11 88 211 / 0.25), transparent 70%)',
-          'radial-gradient(700px 500px at 0% 100%, rgb(30 143 246 / 0.22), transparent 70%)',
-          'radial-gradient(500px 380px at 85% 95%, rgb(232 72 28 / 0.18), transparent 65%)',
+          'radial-gradient(760px 560px at 92% -4%, var(--blob-royal), transparent 70%)',
+          'radial-gradient(620px 520px at 18% 30%, var(--blob-blue), transparent 70%)',
+          'radial-gradient(560px 460px at 78% 62%, var(--blob-accent), transparent 70%)',
+          'radial-gradient(520px 420px at 10% 92%, var(--blob-mint), transparent 70%)',
         ].join(', '),
       }}
     />

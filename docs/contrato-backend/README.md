@@ -12,6 +12,15 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 | [`01-acceso-y-usuarios.md`](01-acceso-y-usuarios.md) | Plan 1 (Acceso) | Supuestos **C1 a C9**: login, `/auth/me`, cambio de contraseña, usuarios y el endpoint nuevo de empresas. |
 | [`02-soporte.md`](02-soporte.md) | Plan 2 (Soporte) | Supuestos **D1 a D12**: tickets, mensajes, imágenes, bandeja y resumen. |
 | [`03-eventos-y-syncs.md`](03-eventos-y-syncs.md) | Plan 3 (Eventos y syncs) | Supuestos **E1 a E10**: estados y tipos genéricos, filtros, errores paginados y el endpoint nuevo de tareas. |
+| [`05-tableros-y-metricas.md`](05-tableros-y-metricas.md) | Después de los planes 1 a 3 | Supuestos **F1 a F9**: resumen de integración del Inicio y métricas de soporte (endpoints nuevos). |
+| [`06-ajustes-plan-5.md`](06-ajustes-plan-5.md) | Plan 5 del backend | **G1 a G6**: cola de eventos como tarea, ocultar corridas vacías, causa y errores saneados para cuentas cliente, snapshot de tickets e implementación de F1 a F9. Escrito por el backend; el front lo aplica en el plan 4f. |
+| [`07-intercambio-evento.md`](07-intercambio-evento.md) | Plan 4i del panel | **H1**: campo `exchange` (recibido, enviado y respuesta) en el detalle del evento, saneado para cuentas cliente. Implementado en el plan 5c del backend (nota al final del archivo). |
+
+## Planes del backend preparados desde el front
+
+| Archivo | Para |
+|---|---|
+| [`planes/2026-10-13-panel-acceso-backend.md`](planes/2026-10-13-panel-acceso-backend.md) | Borrador del **plan 1 (Acceso)**. El chat del backend lo revisa contra el código y lo copia a `docs/superpowers/plans/`. |
 
 ## Cómo usarlo
 
@@ -24,4 +33,5 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 - Plan 4a del panel: `docs/plans/2026-10-12-panel-base.md`, §3.2 (C1 a C9).
 - Plan 4b del panel: `docs/plans/2026-10-12-panel-soporte.md`, §1.2 (D1 a D12).
 - Plan 4c del panel: `docs/plans/2026-10-13-panel-eventos-syncs.md`, §1.2 (E1 a E10).
+- Plan 4e del panel: `docs/plans/2026-10-13-panel-rediseno-tableros.md`, §2 (F1 a F9).
 - Implementación de referencia (mocks): `src/mocks/handlers/` del repo del panel.

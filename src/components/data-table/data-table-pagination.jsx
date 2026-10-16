@@ -43,7 +43,11 @@ export function DataTablePagination({ table, total, disabled }) {
             onValueChange={(value) => table.setPageSize(Number(value))}
             disabled={disabled}
           >
-            <SelectTrigger size="sm" aria-labelledby="page-size-label" className="w-[4.5rem]">
+            <SelectTrigger
+              size="sm"
+              aria-labelledby="page-size-label"
+              className="w-auto min-w-[5.5rem] justify-between gap-2"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

@@ -20,7 +20,59 @@ const actions = () => screen.getByRole('complementary', { name: 'Gestión del ti
 const timeline = () => screen.getByRole('region', { name: 'Línea de tiempo' })
 
 describe('Detalle de Smarteam', () => {
-  it('primera respuesta: pasa a "En progreso" y aparece en la línea de tiempo', async () => {
+  it('abrir un ticket "Abierto" lo pasa a "En progreso" sin marcar primera respuesta', async () => {
+    const ticket = find((t) => t.status === 'abierto' && !t.firstResponseAt)
+    await openTicket(ticket)
+    await waitFor(() => expect(fresh(ticket).status).toBe('en_progreso'))
+    expect(fresh(ticket).firstResponseAt).toBeNull()
+    expect(fresh(ticket).statusHistory.at(-1)).toMatchObject({
+      from: 'abierto',
+      to: 'en_progreso',
+      byType: 'smarteam',
+    })
+    // La pantalla se actualiza sola: ya ofrece "Esperando cliente".
+    expect(
+      await within(actions()).findByRole('button', { name: 'Esperando cliente' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/No se pudo|Error/)).not.toBeInTheDocument()
+  })
+
+  it('abrir un ticket que no está "Abierto" no cambia su estado', async () => {
+    const waiting = find((t) => t.status === 'esperando_cliente')
+    const calls = []
+    server.events.on('request:start', ({ request }) => {
+      if (request.url.endsWith('/status')) calls.push(request.url)
+    })
+    await openTicket(waiting)
+    await screen.findByRole('region', { name: 'Línea de tiempo' })
+    expect(calls).toEqual([])
+    expect(fresh(waiting).status).toBe('esperando_cliente')
+    server.events.removeAllListeners('request:start')
+  })
+
+  it('si la API rechaza el cambio al abrir (409), queda "Abierto" sin avisos de error', async () => {
+    const ticket = find((t) => t.status === 'abierto')
+    let attempts = 0
+    server.use(
+      http.post('/api/staff/tenants/:tenantKey/tickets/:id/status', () => {
+        attempts += 1
+        return HttpResponse.json(
+          { error: 'invalid_transition', message: 'Transición no permitida.' },
+          { status: 409 },
+        )
+      }),
+    )
+    await openTicket(ticket)
+    await waitFor(() => expect(attempts).toBe(1))
+    // Se vuelve a pedir el detalle y no se reintenta.
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(attempts).toBe(1)
+    expect(fresh(ticket).status).toBe('abierto')
+    expect(screen.queryByText('Transición no permitida.')).not.toBeInTheDocument()
+    expect(within(actions()).getByText(/Al responder, el ticket pasa/)).toBeInTheDocument()
+  })
+
+  it('primera respuesta: queda en "En progreso" y aparece en la línea de tiempo', async () => {
     const ticket = find((t) => t.status === 'abierto' && !t.firstResponseAt)
     const { user } = await openTicket(ticket)
     expect(within(timeline()).queryByText('Primera respuesta de Smarteam')).not.toBeInTheDocument()
@@ -36,8 +88,8 @@ describe('Detalle de Smarteam', () => {
   })
 
   it('"Esperando cliente" solo en "En progreso"', async () => {
-    const open = find((t) => t.status === 'abierto')
-    const { unmount } = await openTicket(open)
+    const waiting = find((t) => t.status === 'esperando_cliente')
+    const { unmount } = await openTicket(waiting)
     expect(
       within(actions()).queryByRole('button', { name: 'Esperando cliente' }),
     ).not.toBeInTheDocument()
@@ -113,12 +165,17 @@ describe('Detalle de Smarteam', () => {
     expect(await screen.findByText(/El ticket cambió mientras lo veías/)).toBeInTheDocument()
   })
 
-  it('muestra el contexto con el visor JSON y la empresa', async () => {
+  it('muestra el contexto (resumen y enlace a la sync de su empresa) y la empresa', async () => {
     const withContext = find((t) => t.context?.type === 'syncLog')
     await openTicket(withContext)
     const context = screen.getByRole('region', { name: 'Contexto enlazado' })
     expect(within(context).getByText(/Sync enlazada/)).toBeInTheDocument()
     expect(within(context).getByText(withContext.context.refId)).toBeInTheDocument()
+    expect(within(context).getByRole('button', { name: 'Copiar id' })).toBeInTheDocument()
+    expect(within(context).getByRole('link', { name: 'Ver sync' })).toHaveAttribute(
+      'href',
+      `/syncs/${withContext.context.refId}?empresa=${withContext.tenantKey}`,
+    )
     expect(screen.getByText('Acme Industrial')).toBeInTheDocument()
   })
 

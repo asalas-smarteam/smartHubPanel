@@ -31,12 +31,12 @@ export function TicketTimeline({ ticket }) {
 
   return (
     <section aria-label="Línea de tiempo" className="flex flex-col gap-3">
-      <ol className="relative flex flex-col gap-3 border-l border-brand-blue-pale pl-4">
+      <ol className="relative flex flex-col gap-3 border-l border-notice-border pl-4">
         {events.map((event) => (
           <li key={event.key} className="relative text-sm">
             <span
               aria-hidden="true"
-              className="absolute top-1.5 -left-[21px] size-2.5 rounded-full border-2 border-white bg-brand-royal"
+              className="absolute top-1.5 -left-[21px] size-2.5 rounded-full border-2 border-background bg-primary"
             />
             <p className="font-medium">{event.text}</p>
             <time className="text-xs text-muted-foreground" dateTime={event.at}>

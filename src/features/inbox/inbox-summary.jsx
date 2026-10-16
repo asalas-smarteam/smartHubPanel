@@ -25,7 +25,7 @@ export function InboxSummary({ summary, activeStatus, onSelect }) {
             onClick={() => onSelect(active ? null : status)}
             className={cn(
               'glass flex flex-col items-start gap-1 rounded-xl px-4 py-3 text-left transition focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
-              active ? 'ring-2 ring-brand-royal' : 'hover:shadow-[var(--shadow-card-hover)]',
+              active ? 'ring-2 ring-ring' : 'hover:bg-row-hover',
             )}
           >
             <span className="text-sm text-muted-foreground">{STATUS_LABELS[status]}</span>

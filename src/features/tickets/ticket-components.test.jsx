@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { TicketContext } from './ticket-context'
 import { TicketThread } from './ticket-thread'
 import { TicketTimeline } from './ticket-timeline'
 
@@ -101,27 +100,5 @@ describe('TicketTimeline', () => {
     expect(items.some((text) => text.startsWith('Resuelto por Ana Dev'))).toBe(true)
     expect(items.at(-1)).toMatch(/^Reabierto por Mario Quesada/)
     expect(screen.getByText(/Reaperturas:/)).toHaveTextContent('Reaperturas: 1')
-  })
-})
-
-describe('TicketContext', () => {
-  it('muestra el registro enlazado con el visor JSON', () => {
-    render(
-      <TicketContext
-        context={{
-          type: 'webhookEvent',
-          refId: 'ev-1',
-          snapshot: { status: 'errored', lastError: 'Fallo' },
-        }}
-      />,
-    )
-    expect(screen.getByText(/Evento enlazado/)).toBeInTheDocument()
-    expect(screen.getByText('ev-1')).toBeInTheDocument()
-    expect(screen.getByText(/errored/)).toBeInTheDocument()
-  })
-
-  it('sin contexto no muestra nada', () => {
-    const { container } = render(<TicketContext context={null} />)
-    expect(container).toBeEmptyDOMElement()
   })
 })

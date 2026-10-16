@@ -1,7 +1,7 @@
 // Estado del modo simulado. Imita lo que guarda el backend: usuarios (con tokenVersion),
 // sesiones e intentos fallidos de login. Solo existe en el código de mocks.
 import { createSeedUsers, SEED_TENANTS } from './seed'
-import { createSeedTickets } from './seed-tickets'
+import { createSeedTickets, TICKET_SEED_VERSION } from './seed-tickets'
 
 const STORAGE_KEY = 'panel-mock-db'
 const SESSION_KEY = 'panel-mock-session'
@@ -20,15 +20,20 @@ function createInitialState() {
     failedLogins: {},
     tickets,
     ticketCounters: counters,
+    ticketSeedVersion: TICKET_SEED_VERSION,
   }
 }
 
-/** Datos guardados por una versión anterior del mock (sin tickets): se completan con el seed. */
+/**
+ * Datos guardados por una versión anterior del mock (sin tickets, o con otros tickets de
+ * ejemplo): se reemplazan por el seed actual. Se pierden los tickets creados a mano en dev:mock.
+ */
 function migrate(saved) {
-  if (!saved.tickets) {
+  if (!saved.tickets || saved.ticketSeedVersion !== TICKET_SEED_VERSION) {
     const { tickets, counters } = createSeedTickets(saved.users)
     saved.tickets = tickets
     saved.ticketCounters = counters
+    saved.ticketSeedVersion = TICKET_SEED_VERSION
   }
   return saved
 }

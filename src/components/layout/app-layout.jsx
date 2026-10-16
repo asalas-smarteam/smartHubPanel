@@ -4,6 +4,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router'
 
 import { AppBackground } from '@/components/brand/app-background'
 import { Logo } from '@/components/brand/logo'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -94,10 +95,13 @@ export function AppLayout() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout} disabled={logout.isPending}>
-            <LogOutIcon aria-hidden="true" />
-            Cerrar sesión
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
+            <Button variant="outline" size="sm" onClick={handleLogout} disabled={logout.isPending}>
+              <LogOutIcon aria-hidden="true" />
+              Cerrar sesión
+            </Button>
+          </div>
         </header>
 
         <main className="min-w-0 flex-1">

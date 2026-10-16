@@ -2,72 +2,210 @@
 @import 'tw-animate-css';
 
 /*
- * Tema de Smarteam.
- * Paleta tomada de las variables CSS de https://smarteamcr.com/ (2026-10-12).
- * Los pares de contraste se verifican en src/theme.test.js: si cambias un color, corre los tests.
+ * Tema de Smarteam: vidrio en dos temas, oscuro (por defecto) y claro.
+ * `data-theme="dark" | "light"` en <html> elige los valores (src/app/theme.js; index.html lo
+ * pone antes de pintar). Los componentes usan SOLO los tokens de abajo, nunca colores sueltos.
+ * Los pares de contraste de los dos temas se verifican en src/theme.test.js.
  */
 
 @theme {
   --font-sans:
     'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 
+  /* Colores fijos de la marca (iguales en los dos temas). */
   --color-brand-navy: #051849;
   --color-brand-navy-deep: #03102f;
   --color-brand-royal: #0b58d3;
-  --color-brand-royal-deep: #07429a;
   --color-brand-blue: #1e8ff6;
   --color-brand-blue-pale: #cfe2fa;
   --color-brand-accent: #e8481c;
   --color-brand-accent-strong: #d63e14;
   --color-brand-accent-deep: #c2400f;
   --color-brand-mint: #42e4b3;
-  --color-brand-ink-soft: #41527a;
-  --color-brand-paper-tint: #eef3fc;
-  --color-brand-line-light: #eaeff8;
-
-  /* Insignias de estado (contraste verificado en src/theme.test.js). */
-  --color-status-waiting-bg: #fff1e8;
-  --color-status-waiting-fg: #c2400f;
-  --color-status-done-bg: #d9f7ec;
-  --color-status-done-fg: #065f46;
-  --color-status-muted-bg: #eaeff8;
-  --color-status-muted-fg: #41527a;
-  --color-status-error-bg: #fee4e2;
-  --color-status-error-fg: #b42318;
-
-  --shadow-card: 0 16px 40px -32px rgb(5 24 73 / 0.22);
-  --shadow-card-hover: 0 26px 55px -32px rgb(5 24 73 / 0.3);
 }
 
-/* Variables de shadcn/ui (solo tema claro en la Fase 1). */
-:root {
+/* ─── Tema oscuro (A) ─────────────────────────────────────────────────────── */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
   --radius: 0.875rem;
 
-  --background: #eef3fc;
-  --foreground: #051849;
-  --card: rgb(255 255 255 / 0.7);
-  --card-foreground: #051849;
-  --popover: rgb(255 255 255 / 0.85);
-  --popover-foreground: #051849;
+  --background: #040b22;
+  --foreground: #f3f6fc;
+  --muted-foreground: #cdd6ea;
+  --subtle-foreground: #b3bfdc;
+  --card: rgb(255 255 255 / 0.07);
+  --card-foreground: #f3f6fc;
+  --popover: rgb(10 22 56 / 0.92);
+  --popover-foreground: #f3f6fc;
+  --primary: #5aa5ff;
+  --primary-hover: #7fb6ff;
+  --primary-foreground: #051849;
+  --secondary: rgb(255 255 255 / 0.1);
+  --secondary-foreground: #f3f6fc;
+  --muted: rgb(255 255 255 / 0.08);
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: #ffffff;
+  --destructive: #ffaba0;
+  --positive: #5ff0bb;
+  --destructive-solid: #c4321f;
+  --border: rgb(255 255 255 / 0.13);
+  --input: rgb(255 255 255 / 0.18);
+  --field: rgb(4 11 34 / 0.45);
+  --ring: #5aa5ff;
+  --icon: #9cc8ff;
+  --link: #9cc8ff;
+  --notice: rgb(90 165 255 / 0.12);
+  --notice-border: rgb(90 165 255 / 0.3);
+  --surface: rgb(4 11 34 / 0.4);
+  --row-hover: rgb(255 255 255 / 0.05);
+  --overlay: rgb(1 5 18 / 0.6);
+
+  /* Fondo: color base + manchas de la marca (src/components/brand/app-background.jsx). */
+  --blob-royal: rgb(11 88 211 / 0.62);
+  --blob-blue: rgb(30 143 246 / 0.34);
+  --blob-accent: rgb(232 72 28 / 0.3);
+  --blob-mint: rgb(66 228 179 / 0.2);
+
+  /* Vidrio. `--glass-*-solid`: respaldo sin backdrop-filter o con "reducir transparencia". */
+  --glass-bg: rgb(255 255 255 / 0.07);
+  --glass-border: rgb(255 255 255 / 0.13);
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 24px 60px -30px rgb(0 0 0 / 0.6);
+  --glass-solid: #101a3c;
+  --glass-raised-from: rgb(255 255 255 / 0.12);
+  --glass-raised-to: rgb(255 255 255 / 0.05);
+  --glass-raised-border: rgb(255 255 255 / 0.18);
+  --glass-raised-solid: #16224a;
+  --glass-strong-from: rgb(20 34 74 / 0.78);
+  --glass-strong-to: rgb(8 18 48 / 0.7);
+  --glass-strong-border: rgb(255 255 255 / 0.16);
+  --glass-strong-solid: #0e1a40;
+  --side-bg: rgb(4 11 34 / 0.55);
+  --side-solid: #061033;
+
+  /* Insignias de estado (fondos opacos: el contraste no depende de lo que haya detrás). */
+  --status-done-bg: #123a33;
+  --status-done-fg: #6ff0c0;
+  --status-waiting-bg: #3d2617;
+  --status-waiting-fg: #ffb08a;
+  --status-corrected-bg: #3a2f0b;
+  --status-corrected-fg: #f5c04a;
+  --status-muted-bg: #262f4a;
+  --status-muted-fg: #d5ddee;
+  --status-error-bg: #3a1c22;
+  --status-error-fg: #ff9d91;
+  --status-info-bg: #16325e;
+  --status-info-fg: #b8d6ff;
+
+  /* Gráficos. */
+  --chart-ok: #34d39b;
+  --chart-bad: #ff6b57;
+  --chart-wait: #7aa7ff;
+  --chart-1: #5aa5ff;
+  --chart-2: #ff8a4c;
+  --chart-warn: #f5c04a;
+  --cause-deal: #ff8a4c;
+  --cause-fiscal: #5aa5ff;
+  --cause-master: #f5c04a;
+  --cause-validation: #34d39b;
+  --cause-connectivity: #f27fb2;
+  --cause-other: #94a3c6;
+
+  /* Visor JSON. */
+  --json-key: #b8d6ff;
+  --json-string: #6ff0c0;
+  --json-number: #ffb08a;
+  --json-boolean: #f5c04a;
+  --json-muted: #b3bfdc;
+}
+
+/* ─── Tema claro (B) ──────────────────────────────────────────────────────── */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --background: #e6edf9;
+  --foreground: #0a1638;
+  --muted-foreground: #30406a;
+  --subtle-foreground: #4a5a80;
+  --card: rgb(255 255 255 / 0.52);
+  --card-foreground: #0a1638;
+  --popover: rgb(255 255 255 / 0.94);
+  --popover-foreground: #0a1638;
   --primary: #0b58d3;
   --primary-hover: #07429a;
   --primary-foreground: #ffffff;
   --secondary: #cfe2fa;
   --secondary-foreground: #051849;
-  --muted: #eaeff8;
-  --muted-foreground: #41527a;
-  --accent: #cfe2fa;
+  --muted: rgb(5 24 73 / 0.06);
+  --accent: rgb(5 24 73 / 0.07);
   --accent-foreground: #051849;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #eaeff8;
-  --input: #d5deee;
+  --destructive: #a8281a;
+  --positive: #076b48;
+  --destructive-solid: #c4321f;
+  --border: rgb(5 24 73 / 0.12);
+  --input: rgb(5 24 73 / 0.18);
+  --field: rgb(255 255 255 / 0.8);
   --ring: #1e8ff6;
+  --icon: #07429a;
+  --link: #07429a;
+  --notice: rgb(207 226 250 / 0.7);
+  --notice-border: #b9d3f5;
+  --surface: rgb(255 255 255 / 0.72);
+  --row-hover: rgb(255 255 255 / 0.55);
+  --overlay: rgb(5 24 73 / 0.4);
 
-  --sidebar: rgb(5 24 73 / 0.85);
-  --sidebar-foreground: #ffffff;
-  --sidebar-accent: #cfe2fa;
-  --sidebar-accent-foreground: #051849;
-  --sidebar-border: rgb(255 255 255 / 0.1);
+  --blob-royal: rgb(11 88 211 / 0.42);
+  --blob-blue: rgb(30 143 246 / 0.3);
+  --blob-accent: rgb(232 72 28 / 0.26);
+  --blob-mint: rgb(66 228 179 / 0.3);
+
+  --glass-bg: rgb(255 255 255 / 0.52);
+  --glass-border: rgb(255 255 255 / 0.75);
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 24px 60px -32px rgb(5 24 73 / 0.35);
+  --glass-solid: #f4f7fd;
+  --glass-raised-from: rgb(255 255 255 / 0.74);
+  --glass-raised-to: rgb(255 255 255 / 0.5);
+  --glass-raised-border: rgb(255 255 255 / 0.85);
+  --glass-raised-solid: #ffffff;
+  --glass-strong-from: rgb(255 255 255 / 0.86);
+  --glass-strong-to: rgb(255 255 255 / 0.72);
+  --glass-strong-border: rgb(5 24 73 / 0.1);
+  --glass-strong-solid: #ffffff;
+  --side-bg: rgb(5 24 73 / 0.86);
+  --side-solid: #051849;
+
+  --status-done-bg: #d9f7ec;
+  --status-done-fg: #065f46;
+  --status-waiting-bg: #fff1e8;
+  --status-waiting-fg: #c2400f;
+  --status-corrected-bg: #fdf1c7;
+  --status-corrected-fg: #6f4e00;
+  --status-muted-bg: #eaeff8;
+  --status-muted-fg: #41527a;
+  --status-error-bg: #fee4e2;
+  --status-error-fg: #b42318;
+  --status-info-bg: #cfe2fa;
+  --status-info-fg: #051849;
+
+  --chart-ok: #0a7f57;
+  --chart-bad: #d6402a;
+  --chart-wait: #3f6fd6;
+  --chart-1: #0b58d3;
+  --chart-2: #c2400f;
+  --chart-warn: #946805;
+  --cause-deal: #c2400f;
+  --cause-fiscal: #0b58d3;
+  --cause-master: #946805;
+  --cause-validation: #0a7f57;
+  --cause-connectivity: #c23d7a;
+  --cause-other: #4a5a80;
+
+  --json-key: #051849;
+  --json-string: #065f46;
+  --json-number: #0b58d3;
+  --json-boolean: #a3360c;
+  --json-muted: #41527a;
 }
 
 @theme inline {
@@ -75,7 +213,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -89,65 +226,115 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-positive: var(--positive);
+  --color-destructive-solid: var(--destructive-solid);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-field: var(--field);
   --color-ring: var(--ring);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
+  --color-icon: var(--icon);
+  --color-link: var(--link);
+  --color-notice: var(--notice);
+  --color-notice-border: var(--notice-border);
+  --color-surface: var(--surface);
+  --color-row-hover: var(--row-hover);
+  --color-overlay: var(--overlay);
+  --color-status-done-bg: var(--status-done-bg);
+  --color-status-done-fg: var(--status-done-fg);
+  --color-status-waiting-bg: var(--status-waiting-bg);
+  --color-status-waiting-fg: var(--status-waiting-fg);
+  --color-status-corrected-bg: var(--status-corrected-bg);
+  --color-status-corrected-fg: var(--status-corrected-fg);
+  --color-status-muted-bg: var(--status-muted-bg);
+  --color-status-muted-fg: var(--status-muted-fg);
+  --color-status-error-bg: var(--status-error-bg);
+  --color-status-error-fg: var(--status-error-fg);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-info-fg: var(--status-info-fg);
+  --color-chart-ok: var(--chart-ok);
+  --color-chart-bad: var(--chart-bad);
+  --color-chart-wait: var(--chart-wait);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-warn: var(--chart-warn);
 }
 
 /* Superficies de vidrio. Cada una tiene su respaldo sólido más abajo. */
 @utility glass {
-  background-color: rgb(255 255 255 / 0.6);
-  backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgb(255 255 255 / 0.5);
-  box-shadow: var(--shadow-card);
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
+/* Vidrio destacado (héroes y tarjetas principales de los tableros). */
+@utility glass-raised {
+  background-image: linear-gradient(135deg, var(--glass-raised-from), var(--glass-raised-to));
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid var(--glass-raised-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Vidrio más opaco: login, diálogos, menús y listas desplegables. */
 @utility glass-strong {
-  background-color: rgb(255 255 255 / 0.85);
-  backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgb(5 24 73 / 0.1);
-  box-shadow: 0 18px 40px -16px rgb(5 24 73 / 0.35);
+  background-image: linear-gradient(135deg, var(--glass-strong-from), var(--glass-strong-to));
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid var(--glass-strong-border);
+  box-shadow: 0 30px 80px -36px rgb(0 0 0 / 0.55);
+  color: var(--popover-foreground);
 }
 
+/* Menú lateral: vidrio azul marino en los dos temas. */
 @utility glass-dark {
-  background-color: rgb(5 24 73 / 0.85);
-  backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgb(255 255 255 / 0.1);
+  background-color: var(--side-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  border-right: 1px solid rgb(255 255 255 / 0.08);
   color: #ffffff;
 }
 
 /* Respaldo: sin soporte de backdrop-filter, o con "reducir transparencia" activado. */
 @supports not (backdrop-filter: blur(1px)) {
   .glass {
-    background-color: rgb(255 255 255 / 0.96);
+    background-color: var(--glass-solid);
+  }
+  .glass-raised {
+    background-image: none;
+    background-color: var(--glass-raised-solid);
   }
   .glass-strong {
-    background-color: #ffffff;
+    background-image: none;
+    background-color: var(--glass-strong-solid);
   }
   .glass-dark {
-    background-color: #051849;
+    background-color: var(--side-solid);
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
   .glass {
-    background-color: rgb(255 255 255 / 0.96);
+    background-color: var(--glass-solid);
+    backdrop-filter: none;
+  }
+  .glass-raised {
+    background-image: none;
+    background-color: var(--glass-raised-solid);
     backdrop-filter: none;
   }
   .glass-strong {
-    background-color: #ffffff;
+    background-image: none;
+    background-color: var(--glass-strong-solid);
     backdrop-filter: none;
   }
   .glass-dark {
-    background-color: #051849;
+    background-color: var(--side-solid);
     backdrop-filter: none;
   }
 }

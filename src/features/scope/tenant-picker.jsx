@@ -47,7 +47,7 @@ export function TenantGate({ scope, what }) {
   const tenants = useTenants()
   return (
     <div className="glass flex flex-col items-center gap-4 rounded-xl px-6 py-12 text-center">
-      <BuildingIcon className="size-8 text-brand-ink-soft" aria-hidden="true" />
+      <BuildingIcon className="size-8 text-subtle-foreground" aria-hidden="true" />
       <p className="text-base font-semibold">Elige una empresa para ver {what}</p>
       {tenants.isError ? (
         <ErrorState error={tenants.error} onRetry={tenants.refetch} className="py-0" />

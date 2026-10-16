@@ -1,10 +1,13 @@
 import { Toaster as Sonner } from 'sonner'
 
-// Ajuste Smarteam: tema claro fijo (no hay modo oscuro en la Fase 1) y avisos con `glass-strong`.
+import { useTheme } from '@/app/theme'
+
+// Ajuste Smarteam: sigue el tema del panel y los avisos usan `glass-strong`.
 function Toaster(props) {
+  const { theme } = useTheme()
   return (
     <Sonner
-      theme="light"
+      theme={theme}
       position="top-right"
       className="toaster group"
       toastOptions={{
