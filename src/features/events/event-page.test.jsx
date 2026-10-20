@@ -15,6 +15,8 @@ async function openEvent(route, session = client) {
   return app
 }
 
+const tipo = () => screen.getByText('Tipo', { selector: 'dt' }).nextElementSibling
+
 describe('Detalle de evento', () => {
   it('cliente: estado, referencia, reintentos y último error; sin Payload ni Auditoría', async () => {
     await openEvent('/eventos/ev-acme-001')
@@ -57,6 +59,21 @@ describe('Detalle de evento', () => {
   it('tipo desconocido se muestra tal cual; evento sin error no tiene bloque de error', async () => {
     await openEvent('/eventos/ev-acme-013')
     expect(screen.getByRole('heading', { level: 1, name: 'updateContact' })).toBeInTheDocument()
+    // Sin nombre conocido, el código aparece una sola vez en "Tipo".
+    expect(tipo()).toHaveTextContent(/^updateContact$/)
+  })
+
+  it('"Tipo" muestra el nombre y debajo el código interno (plan 4o)', async () => {
+    await openEvent('/eventos/ev-acme-001')
+    expect(within(tipo()).getByText('Crear cotización')).toBeInTheDocument()
+    expect(within(tipo()).getByText('createQuotation')).toHaveClass('font-mono')
+  })
+
+  it('la causa y su grupo van como un solo texto (plan 4o)', async () => {
+    await openEvent('/eventos/ev-acme-001')
+    expect(screen.getByRole('group', { name: 'Causa' })).toHaveTextContent(
+      'Causa: Artículo inexistente en destino · Validación del destino',
+    )
   })
 
   it('de otra empresa o inexistente → "No encontramos lo que buscas"', async () => {

@@ -1,6 +1,6 @@
 # Plan 4e: rediseño en vidrio (oscuro y claro) + Inicio del cliente + Métricas de soporte
 
-- **Estado:** aprobado (13-10-2026), en ejecución.
+- **Estado:** aprobado (13-10-2026), terminado (15-10-2026). Paso 7: revisión visual hecha (hallazgos en el plan 4o, `2026-10-15-panel-revision-visual.md`), datos de prueba alineados con G7, README actualizado y verificación completa en verde.
 - **Origen:** pedido del 2026-10-13 ("nada está a nivel de diseño glassmorphism", gráficos de tickets resueltos y en cuánto tiempo, tablero del cliente como la Bitácora de cotizaciones). Respuestas del usuario: métricas para **Smarteam y cliente**; tablero como **nueva página de inicio**; **las dos direcciones visuales del lienzo** "Panel Smarteam — rediseño glass y tableros", con selector: **A, vidrio sobre azul marino** (fila superior, tema por defecto) y **B, vidrio sobre fondo claro** (fila inferior).
 - **Spec:** `docs/specs/2026-10-12-panel-soporte-design.md`. Este plan **adelanta** S13 (métricas de calidad, Fase 2) y la parte de "portada de estado" de E5, y cambia dos decisiones del spec: dos temas con selector (el spec decía "solo claro en la Fase 1") y gráficos propios en vez de Recharts (§3.4).
 - **Base:** planes 4a, 4b y 4c. **Repo:** `smartHubPanel`, rama `main`. El commit y el push los hace el usuario.

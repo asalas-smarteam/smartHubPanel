@@ -15,6 +15,8 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 | [`05-tableros-y-metricas.md`](05-tableros-y-metricas.md) | Después de los planes 1 a 3 | Supuestos **F1 a F9**: resumen de integración del Inicio y métricas de soporte (endpoints nuevos). |
 | [`06-ajustes-plan-5.md`](06-ajustes-plan-5.md) | Plan 5 del backend | **G1 a G6**: cola de eventos como tarea, ocultar corridas vacías, causa y errores saneados para cuentas cliente, snapshot de tickets e implementación de F1 a F9. Escrito por el backend; el front lo aplica en el plan 4f. |
 | [`07-intercambio-evento.md`](07-intercambio-evento.md) | Plan 4i del panel | **H1**: campo `exchange` (recibido, enviado y respuesta) en el detalle del evento, saneado para cuentas cliente. Implementado en el plan 5c del backend (nota al final del archivo). |
+| [`08-mapeo-campos.md`](08-mapeo-campos.md) | Plan 4p del panel | **I1 a I4**: lista de mapeos de campos de la empresa (solo lectura), permiso `mappings.read` y nombres genéricos. |
+| [`09-tareas-programadas.md`](09-tareas-programadas.md) | Plan 4r del panel | **J1 a J5**: tareas programadas de la empresa (solo lectura), nombres genéricos, campos que nunca salen y permiso `tasks.read`. |
 
 ## Planes del backend preparados desde el front
 
@@ -34,4 +36,6 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 - Plan 4b del panel: `docs/plans/2026-10-12-panel-soporte.md`, §1.2 (D1 a D12).
 - Plan 4c del panel: `docs/plans/2026-10-13-panel-eventos-syncs.md`, §1.2 (E1 a E10).
 - Plan 4e del panel: `docs/plans/2026-10-13-panel-rediseno-tableros.md`, §2 (F1 a F9).
+- Plan 4p del panel: `docs/plans/2026-10-16-panel-mapeo-campos.md` (I1 a I4).
+- Plan 4r del panel: `docs/plans/2026-10-20-panel-tareas-programadas.md` (J1 a J5).
 - Implementación de referencia (mocks): `src/mocks/handlers/` del repo del panel.

@@ -1,7 +1,9 @@
 import { authHandlers } from './auth'
 import { dashboardHandlers } from './dashboard'
 import { eventHandlers } from './events'
+import { mappingHandlers } from './mappings'
 import { metricsHandlers } from './metrics'
+import { scheduledTaskHandlers } from './scheduled-tasks'
 import { staffTicketHandlers } from './staff-tickets'
 import { staffTenantsHandlers } from './staff-tenants'
 import { staffUsersHandlers } from './staff-users'
@@ -20,4 +22,6 @@ export const handlers = [
   ...eventHandlers,
   ...dashboardHandlers,
   ...syncHandlers,
+  ...mappingHandlers,
+  ...scheduledTaskHandlers,
 ]

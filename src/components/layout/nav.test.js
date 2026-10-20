@@ -11,17 +11,26 @@ const labelsFor = (accountType) => {
 }
 
 describe('menú por permisos', () => {
-  it('cliente: Inicio (su primera sección), Soporte, Eventos y Syncs (Métricas, solo Smarteam)', () => {
-    expect(labelsFor('cliente')).toEqual(['Inicio', 'Soporte', 'Eventos', 'Syncs'])
+  it('cliente: Inicio (su primera sección), Soporte, Eventos, Syncs, Tareas programadas y Mapeo de campos (Métricas, solo Smarteam)', () => {
+    expect(labelsFor('cliente')).toEqual([
+      'Inicio',
+      'Soporte',
+      'Eventos',
+      'Syncs',
+      'Tareas programadas',
+      'Mapeo de campos',
+    ])
   })
 
-  it('Smarteam: Bandeja (su primera sección), Inicio, Métricas, Eventos, Syncs y Usuarios', () => {
+  it('Smarteam: Bandeja (su primera sección), Inicio, Métricas, Eventos, Syncs, Tareas programadas, Mapeo de campos y Usuarios', () => {
     expect(labelsFor('smarteam')).toEqual([
       'Bandeja',
       'Inicio',
       'Métricas',
       'Eventos',
       'Syncs',
+      'Tareas programadas',
+      'Mapeo de campos',
       'Usuarios',
     ])
   })

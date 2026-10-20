@@ -105,10 +105,80 @@ function taskOf(taskId) {
  */
 export function toClientSync(raw) {
   const sync = toApiSync(raw)
-  if (sync.errorMessage !== null && typeof sync.errorMessage === 'object') {
+  if (isQueueErrorList(raw.errorMessage)) {
+    sync.errorMessage = { summary: queueRunSummary(raw.errorMessage) }
+  } else if (sync.errorMessage !== null && typeof sync.errorMessage === 'object') {
     sync.errorMessage = { summary: `${raw.failed} error(es) en la corrida` }
   }
   return sync
+}
+
+// Corridas de la cola con el detalle solo en errorMessage (G7, plan 5b del backend): una lista
+// de entradas con lo recibido, lo enviado y las dos respuestas (INTERNAL.QUEUE_*). Igual que el
+// backend (queueRunErrors.js): resumen con el primer mensaje e ítems derivados de cada entrada.
+const QUEUE_ENTRY_KEYS = [
+  INTERNAL.QUEUE_RECEIVED,
+  INTERNAL.QUEUE_SENT,
+  INTERNAL.QUEUE_CRM_RESPONSE,
+  INTERNAL.QUEUE_ERP_RESPONSE,
+]
+const isPlainObject = (value) =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+const isQueueEntry = (item) =>
+  isPlainObject(item) && QUEUE_ENTRY_KEYS.some((key) => Object.hasOwn(item, key))
+export const isQueueErrorList = (value) =>
+  Array.isArray(value) && value.length > 0 && value.every(isQueueEntry)
+
+const textOf = (value) => (typeof value === 'string' && value.trim() ? value : null)
+
+function queueEntryRecord(entry) {
+  const received = entry?.[INTERNAL.QUEUE_RECEIVED]
+  const payload = isPlainObject(received) ? received : null
+  const value = payload?.deal?.[INTERNAL.OBJECT_ID_FIELD] ?? payload?.dealId ?? null
+  return value === null || value === '' || typeof value === 'object' ? null : String(value)
+}
+
+function queueEntryMessage(entry) {
+  const erp = isPlainObject(entry?.[INTERNAL.QUEUE_ERP_RESPONSE])
+    ? entry[INTERNAL.QUEUE_ERP_RESPONSE]
+    : null
+  const crm = isPlainObject(entry?.[INTERNAL.QUEUE_CRM_RESPONSE])
+    ? entry[INTERNAL.QUEUE_CRM_RESPONSE]
+    : null
+  return (
+    textOf(erp?.message) ??
+    textOf(erp?.error?.message) ??
+    textOf(crm?.message) ??
+    textOf(crm?.error?.message)
+  )
+}
+
+function queueRunSummary(entries) {
+  const count = entries.length
+  const first = queueEntryMessage(entries[0])
+  if (!first) return `${count} error(es) en la corrida`
+  return `${count} ${count === 1 ? 'error' : 'errores'} en la corrida: ${first}`
+}
+
+/**
+ * Errores de la corrida como los da la API (E7): los guardados o, en una corrida de la cola sin
+ * errores propios, los derivados de errorMessage con el evento de su negocio.
+ */
+export function syncErrorItems(raw, { client }) {
+  if (raw.errors.length === 0 && isQueueErrorList(raw.errorMessage)) {
+    return raw.errorMessage.map((entry) => {
+      const record = queueEntryRecord(entry)
+      const event = tenantEvents(raw.tenantKey).find(
+        (ev) => record && String(ev.payload?.deal?.[INTERNAL.OBJECT_ID_FIELD]) === record,
+      )
+      return {
+        record,
+        message: queueEntryMessage(entry) ?? 'Error sin detalle',
+        eventId: event?._id ?? null,
+      }
+    })
+  }
+  return client ? raw.errors.map(toClientSyncError) : structuredClone(raw.errors)
 }
 
 /** Errores de una corrida en la vista de cliente (G4): solo registro y mensaje. */

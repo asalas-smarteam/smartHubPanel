@@ -1,5 +1,6 @@
 import { AppLayout } from '@/components/layout/app-layout'
 import { NotFoundPage, RouteErrorPage } from '@/components/page-states'
+import { AccountPasswordPage } from '@/features/auth/account-password-page'
 import { ChangePasswordPage } from '@/features/auth/change-password-page'
 import {
   RedirectIfAuthenticated,
@@ -31,6 +32,9 @@ const EventsPage = lazyPage(() => import('@/features/events/events-page'), 'Even
 const EventPage = lazyPage(() => import('@/features/events/event-page'), 'EventPage')
 const SyncsPage = lazyPage(() => import('@/features/syncs/syncs-page'), 'SyncsPage')
 const SyncPage = lazyPage(() => import('@/features/syncs/sync-page'), 'SyncPage')
+const TasksPage = lazyPage(() => import('@/features/tasks/tasks-page'), 'TasksPage')
+const TaskPage = lazyPage(() => import('@/features/tasks/task-page'), 'TaskPage')
+const MappingsPage = lazyPage(() => import('@/features/mappings/mappings-page'), 'MappingsPage')
 const UsersPage = lazyPage(() => import('@/features/users/users-page'), 'UsersPage')
 
 const withPermission = (permission, Page) => ({
@@ -82,7 +86,15 @@ export const routes = [
               { path: 'eventos/:id', ...withPermission(PERMISSIONS.EVENTS_READ, EventPage) },
               { path: 'syncs', ...withPermission(PERMISSIONS.SYNCS_READ, SyncsPage) },
               { path: 'syncs/:id', ...withPermission(PERMISSIONS.SYNCS_READ, SyncPage) },
+              { path: 'tareas', ...withPermission(PERMISSIONS.TASKS_READ, TasksPage) },
+              { path: 'tareas/:id', ...withPermission(PERMISSIONS.TASKS_READ, TaskPage) },
+              { path: 'mapeos', ...withPermission(PERMISSIONS.MAPPINGS_READ, MappingsPage) },
               { path: 'usuarios', ...withPermission(PERMISSIONS.STAFF_USERS, UsersPage) },
+              // Cambio voluntario de contraseña, solo Smarteam (plan 4s).
+              {
+                path: 'cuenta/contrasena',
+                ...withPermission(PERMISSIONS.STAFF_USERS, AccountPasswordPage),
+              },
             ],
           },
         ],

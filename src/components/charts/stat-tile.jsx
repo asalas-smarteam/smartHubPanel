@@ -11,7 +11,7 @@ const TONES = {
  * Indicador: etiqueta, valor grande y nota. `size="sm"` es la versión compacta (dentro de otra tarjeta).
  * @param {{ label: string, value: import('react').ReactNode, note?: import('react').ReactNode,
  *   tone?: 'default' | 'positive' | 'negative' | 'warning', size?: 'md' | 'sm', highlight?: boolean,
- *   className?: string, valueClassName?: string }} props
+ *   className?: string, labelClassName?: string, valueClassName?: string }} props
  *   `highlight`: fondo con el color principal, para el dato que resume a los demás.
  */
 export function StatTile({
@@ -22,6 +22,7 @@ export function StatTile({
   size = 'md',
   highlight = false,
   className,
+  labelClassName,
   valueClassName,
 }) {
   const small = size === 'sm'
@@ -43,6 +44,7 @@ export function StatTile({
         className={cn(
           highlight ? 'text-primary-foreground/85' : 'text-subtle-foreground',
           small ? 'text-xs' : 'font-mono text-[10.5px] tracking-[0.12em] uppercase',
+          labelClassName,
         )}
       >
         {label}

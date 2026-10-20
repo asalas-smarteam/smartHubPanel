@@ -105,6 +105,8 @@
   --chart-1: #5aa5ff;
   --chart-2: #ff8a4c;
   --chart-warn: #f5c04a;
+  /* Icono de direccionalidad del mapeo de campos (plan 4q): naranja en oscuro, azul en claro. */
+  --direction: #ff8a4c;
   --cause-deal: #ff8a4c;
   --cause-fiscal: #5aa5ff;
   --cause-master: #f5c04a;
@@ -194,6 +196,7 @@
   --chart-1: #0b58d3;
   --chart-2: #c2400f;
   --chart-warn: #946805;
+  --direction: #0b58d3;
   --cause-deal: #c2400f;
   --cause-fiscal: #0b58d3;
   --cause-master: #946805;
@@ -261,6 +264,7 @@
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-warn: var(--chart-warn);
+  --color-direction: var(--direction);
 }
 
 /* Superficies de vidrio. Cada una tiene su respaldo sólido más abajo. */

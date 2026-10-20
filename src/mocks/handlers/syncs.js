@@ -6,8 +6,8 @@ import {
   tenantTasks,
   toApiSync,
   toApiTask,
+  syncErrorItems,
   toClientSync,
-  toClientSyncError,
 } from '../operations'
 import { bothScopes, inRange, readDateRange, resolveScope } from './scope'
 import { paginate, readPagination } from './ticket-utils'
@@ -92,10 +92,7 @@ export const syncHandlers = [
     const client = params.tenantKey === undefined
     return HttpResponse.json({
       ...(client ? toClientSync(raw) : toApiSync(raw)),
-      errors: paginate(
-        client ? raw.errors.map(toClientSyncError) : structuredClone(raw.errors),
-        paging,
-      ),
+      errors: paginate(syncErrorItems(raw, { client }), paging),
     })
   }),
 ]

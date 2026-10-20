@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { BarList } from './bar-list'
 import { ChartCard } from './chart-card'
@@ -249,6 +249,29 @@ describe('ColumnChart', () => {
     const table = screen.getByRole('table', { name: 'Resueltos por semana' })
     expect(within(table).getAllByRole('columnheader')).toHaveLength(2)
     expect(screen.queryByText('Reabiertos')).not.toBeInTheDocument()
+  })
+
+  describe('con más columnas que espacio (plan 4o)', () => {
+    afterEach(() => vi.restoreAllMocks())
+
+    it('arranca mostrando las más recientes y marca el borde con más columnas', () => {
+      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(900)
+      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300)
+      const { container } = render(
+        <ColumnChart label="Por semana" columns={columns} primary={primary} />,
+      )
+      const scroller = container.querySelector('.overflow-x-auto')
+      expect(scroller.scrollLeft).toBe(900)
+      expect(scroller).toHaveAttribute('data-fade', 'true')
+      expect(scroller.style.maskImage).toContain('to right')
+    })
+
+    it('si todo entra, no hay degradado', () => {
+      const { container } = render(
+        <ColumnChart label="Por semana" columns={columns} primary={primary} />,
+      )
+      expect(container.querySelector('.overflow-x-auto')).not.toHaveAttribute('data-fade')
+    })
   })
 
   it('todo en cero no dibuja columnas', () => {

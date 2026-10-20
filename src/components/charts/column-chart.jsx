@@ -1,9 +1,47 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+
 import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { ChartLegend } from './chart-legend'
 import { scaled, summarize } from './chart-summary'
 import { ChartTable } from './chart-table'
+
+// Degradado en el borde por donde hay más columnas para deslizar (plan 4o).
+const FADE = '2rem'
+const MASKS = {
+  both: `linear-gradient(to right, transparent, #000 ${FADE}, #000 calc(100% - ${FADE}), transparent)`,
+  left: `linear-gradient(to right, transparent, #000 ${FADE})`,
+  right: `linear-gradient(to left, transparent, #000 ${FADE})`,
+}
+
+/**
+ * Scroll horizontal que arranca al final (lo más reciente) y dice de qué lado quedan columnas
+ * ocultas, para el degradado.
+ */
+function useScrollToEnd(dependency) {
+  const ref = useRef(null)
+  const [hidden, setHidden] = useState(null)
+  const update = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const left = el.scrollLeft > 1
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+    const next = left && right ? 'both' : left ? 'left' : right ? 'right' : null
+    setHidden((prev) => (prev === next ? prev : next))
+  }, [])
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    el.scrollLeft = el.scrollWidth
+    update()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [dependency, update])
+  return { scrollRef: ref, onScroll: update, fadeMask: hidden ? MASKS[hidden] : undefined }
+}
 
 const sum = (columns, field) => columns.reduce((acc, column) => acc + (column[field] || 0), 0)
 
@@ -30,6 +68,7 @@ export function ColumnChart({
   const hasNotes = columns.some((c) => c.note !== undefined)
   // La versión compacta (dentro de otra tarjeta) no lleva rótulos debajo: están en la tabla.
   const small = size === 'sm'
+  const { scrollRef, onScroll, fadeMask } = useScrollToEnd(columns.length)
   const summary = summarize(label, [
     [primary.label, formatNumber(sum(columns, 'value'))],
     ...(secondary ? [[secondary.label, formatNumber(sum(columns, 'secondary'))]] : []),
@@ -46,7 +85,13 @@ export function ColumnChart({
           ]}
         />
       )}
-      <div className="overflow-x-auto">
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        data-fade={fadeMask ? 'true' : undefined}
+        className="overflow-x-auto"
+        style={fadeMask ? { maskImage: fadeMask, WebkitMaskImage: fadeMask } : undefined}
+      >
         <div
           role="img"
           aria-label={summary}

@@ -10,6 +10,10 @@ export const PERMISSIONS = Object.freeze({
   TICKETS_REOPEN: 'tickets.reopen',
   EVENTS_READ: 'events.read',
   SYNCS_READ: 'syncs.read',
+  // Mapeo de campos de la empresa, solo lectura (plan 4p, contrato I3).
+  MAPPINGS_READ: 'mappings.read',
+  // Tareas programadas de la empresa, solo lectura (plan 4r, contrato J4).
+  TASKS_READ: 'tasks.read',
   STAFF_TICKETS: 'staff.tickets',
   STAFF_USERS: 'staff.users',
   STAFF_EVENTS_RAW: 'staff.events.raw',

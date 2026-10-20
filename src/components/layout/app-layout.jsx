@@ -1,6 +1,6 @@
-import { LogOutIcon, MenuIcon } from 'lucide-react'
+import { KeyRoundIcon, LogOutIcon, MenuIcon } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 
 import { AppBackground } from '@/components/brand/app-background'
 import { Logo } from '@/components/brand/logo'
@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { usePermissions } from '@/features/auth/permissions'
+import { PERMISSIONS, usePermissions } from '@/features/auth/permissions'
 import { useLogout, useSession } from '@/features/auth/session'
 import { cn } from '@/lib/utils'
 
@@ -97,6 +97,14 @@ export function AppLayout() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
+            {can(PERMISSIONS.STAFF_USERS) && (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/cuenta/contrasena" aria-label="Cambiar contraseña">
+                  <KeyRoundIcon aria-hidden="true" />
+                  <span className="hidden sm:inline">Contraseña</span>
+                </Link>
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={handleLogout} disabled={logout.isPending}>
               <LogOutIcon aria-hidden="true" />
               Cerrar sesión

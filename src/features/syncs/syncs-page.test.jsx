@@ -24,8 +24,8 @@ const cells = (row) =>
 describe('Syncs', () => {
   it('lista las corridas con contadores; la que no terminó aparece "En curso"', async () => {
     const { table } = await openSyncs()
-    // Por defecto se ocultan las corridas sin cambios (G2): 30 de tareas + 2 de la cola con datos.
-    expect(screen.getByText('32 resultados')).toBeInTheDocument()
+    // Por defecto se ocultan las corridas sin cambios (G2): 30 de tareas + 3 de la cola con datos.
+    expect(screen.getByText('33 resultados')).toBeInTheDocument()
     const [running] = bodyRows(table)
     expect(cells(running)[3]).toBe('En curso')
     expect(within(running).getByRole('link')).toHaveAttribute('href', '/syncs/sync-acme-030')

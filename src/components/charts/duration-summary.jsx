@@ -10,6 +10,9 @@ const countText = (count, noun) => `${formatNumber(count)} ${count === 1 ? noun.
 // En el celular (2 columnas) el tiempo va más chico para que "14 min 06 s" quepa en una línea.
 const valueClass = 'whitespace-nowrap text-[22px] sm:text-[32px]'
 
+// El nombre reserva dos líneas: así el tiempo queda a la misma altura en todas las tarjetas.
+const labelClass = 'line-clamp-2 min-h-[2lh]'
+
 const gridClass = 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
 
 /**
@@ -66,6 +69,7 @@ export function DurationSummary({
           <StatTile
             highlight
             className="flex-1"
+            labelClassName={labelClass}
             valueClassName={valueClass}
             label="Promedio general"
             value={loading ? '…' : formatMilliseconds(overall?.averageMs)}
@@ -82,6 +86,7 @@ export function DurationSummary({
           <li key={group.key} className="flex">
             <StatTile
               className="flex-1"
+              labelClassName={labelClass}
               valueClassName={valueClass}
               label={group.label}
               value={formatMilliseconds(group.averageMs)}

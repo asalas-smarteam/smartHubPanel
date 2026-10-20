@@ -1,6 +1,14 @@
 // Matriz de permisos de la Fase 1, copiada de la tabla del spec (Cuentas, roles y permisos).
 // La API real es la fuente de verdad; esto solo simula lo que devolverá en `permissions`.
-const SMARTEAM = ['events.read', 'syncs.read', 'staff.tickets', 'staff.users', 'staff.events.raw']
+const SMARTEAM = [
+  'events.read',
+  'syncs.read',
+  'mappings.read',
+  'tasks.read',
+  'staff.tickets',
+  'staff.users',
+  'staff.events.raw',
+]
 const CLIENTE = [
   'tickets.read',
   'tickets.create',
@@ -8,6 +16,8 @@ const CLIENTE = [
   'tickets.reopen',
   'events.read',
   'syncs.read',
+  'mappings.read',
+  'tasks.read',
 ]
 
 export function permissionsFor(user) {

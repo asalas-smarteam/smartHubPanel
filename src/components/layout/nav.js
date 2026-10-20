@@ -1,5 +1,7 @@
 import {
   ActivityIcon,
+  ArrowRightLeftIcon,
+  CalendarClockIcon,
   ChartColumnIcon,
   InboxIcon,
   LayoutDashboardIcon,
@@ -33,6 +35,18 @@ export const NAV_ITEMS = [
   },
   { to: '/eventos', label: 'Eventos', icon: ActivityIcon, permission: PERMISSIONS.EVENTS_READ },
   { to: '/syncs', label: 'Syncs', icon: RefreshCwIcon, permission: PERMISSIONS.SYNCS_READ },
+  {
+    to: '/tareas',
+    label: 'Tareas programadas',
+    icon: CalendarClockIcon,
+    permission: PERMISSIONS.TASKS_READ,
+  },
+  {
+    to: '/mapeos',
+    label: 'Mapeo de campos',
+    icon: ArrowRightLeftIcon,
+    permission: PERMISSIONS.MAPPINGS_READ,
+  },
   { to: '/usuarios', label: 'Usuarios', icon: UsersIcon, permission: PERMISSIONS.STAFF_USERS },
 ]
 

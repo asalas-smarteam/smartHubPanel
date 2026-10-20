@@ -20,6 +20,11 @@ export const INTERNAL = Object.freeze({
   OBJECT_ID_FIELD: 'hs_' + 'object_id',
   RECORD_SYNC_TASK: `${DEST.toUpperCase()}_SYNC`,
   DROPDOWN_TASK: 'DROPDOWN_OPTIONS',
+  // Entradas que la cola de eventos guarda en errorMessage (G7): recibido, enviado y respuestas.
+  QUEUE_RECEIVED: `payload_${ORIGIN[0].toUpperCase()}${ORIGIN.slice(1)}`,
+  QUEUE_SENT: `payload_${DEST.toUpperCase()}`,
+  QUEUE_CRM_RESPONSE: `response_${ORIGIN}`,
+  QUEUE_ERP_RESPONSE: `response_${DEST.toUpperCase()}`,
 })
 
 const BASE_DATE = Date.parse('2026-10-12T18:00:00.000Z')
@@ -280,7 +285,34 @@ function buildQueueSyncs(tenantKey) {
     startedAt: hoursAgo(7),
     finishedAt: hoursAgo(6.99),
   }
-  return [...empty, withError, withoutDetail]
+  // Formato real de la cola (G7): el detalle va en errorMessage como lista de entradas y
+  // `errors` queda vacío; la API deriva los ítems y el resumen con el primer mensaje.
+  const fromQueueEntries = {
+    ...withoutDetail,
+    _id: `${prefix}07`,
+    recordsProcessed: 2,
+    failed: 2,
+    errorMessage: [
+      {
+        [INTERNAL.QUEUE_RECEIVED]: { deal: { [INTERNAL.OBJECT_ID_FIELD]: '18374652901' } },
+        [INTERNAL.QUEUE_SENT]: { CardCode: 'C-0042' },
+        [INTERNAL.QUEUE_CRM_RESPONSE]: null,
+        [INTERNAL.QUEUE_ERP_RESPONSE]: {
+          error: { message: 'El artículo ITEM-0042 no existe en el sistema destino.' },
+        },
+      },
+      {
+        [INTERNAL.QUEUE_RECEIVED]: { deal: { [INTERNAL.OBJECT_ID_FIELD]: '18499990000' } },
+        [INTERNAL.QUEUE_SENT]: null,
+        [INTERNAL.QUEUE_CRM_RESPONSE]: null,
+        [INTERNAL.QUEUE_ERP_RESPONSE]: null,
+      },
+    ],
+    errors: [],
+    startedAt: hoursAgo(8),
+    finishedAt: hoursAgo(7.98),
+  }
+  return [...empty, withError, withoutDetail, fromQueueEntries]
 }
 
 function buildSyncs(tenantKey, tasks) {

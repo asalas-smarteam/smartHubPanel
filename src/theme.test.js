@@ -111,6 +111,7 @@ describe.each(['dark', 'light'])('tema %s', (theme) => {
     'chart-1',
     'chart-2',
     'chart-warn',
+    'direction',
     'icon',
     'cause-deal',
     'cause-fiscal',

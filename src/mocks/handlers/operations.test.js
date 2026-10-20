@@ -130,7 +130,7 @@ describe('mocks de syncs', () => {
   it('cliente: corridas de su empresa por inicio descendente, con "running" y tipos genéricos', async () => {
     signInAs(clientEmail)
     const page = await apiFetch('/syncs', { query: all, schema: syncPageSchema })
-    expect(page.total).toBe(36) // 30 corridas de tareas + 6 vueltas de la cola de eventos (G1)
+    expect(page.total).toBe(37) // 30 corridas de tareas + 7 vueltas de la cola de eventos (G1, G7)
     const dates = page.items.map((sync) => sync.startedAt)
     expect(dates).toEqual([...dates].sort().reverse())
     expect(page.items[0]).toMatchObject({ status: 'running', finishedAt: null })

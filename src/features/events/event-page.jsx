@@ -132,7 +132,13 @@ export function EventPage() {
                 {data.retries} de {data.maxRetries}
               </DetailItem>
               <DetailItem label="Tipo">
-                <span className="font-mono text-xs">{data.type}</span>
+                {/* Nombre legible y, debajo, el código interno para buscarlo en la base (plan 4o). */}
+                <span className="flex flex-col gap-0.5">
+                  <span>{eventTypeLabel(data.type)}</span>
+                  {eventTypeLabel(data.type) !== data.type && (
+                    <span className="font-mono text-xs text-muted-foreground">{data.type}</span>
+                  )}
+                </span>
               </DetailItem>
               <DetailItem label="Creado">{formatDateTime(data.createdAt)}</DetailItem>
               <DetailItem label="Actualizado">{formatDateTime(data.updatedAt)}</DetailItem>

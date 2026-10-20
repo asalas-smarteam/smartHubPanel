@@ -9,15 +9,17 @@ import { causeGroup } from './constants'
  */
 export function CauseLabel({ cause, withGroup = false, className }) {
   const group = causeGroup(cause.group)
+  // En línea (no flex): en pantallas angostas la causa y su grupo bajan de renglón como texto
+  // corrido, sin partirse en dos columnas (plan 4o).
   return (
-    <span className={cn('inline-flex items-center gap-1.5', className)}>
+    <span className={cn('inline', className)}>
       <span
         aria-hidden="true"
-        className="size-2 shrink-0 rounded-full"
+        className="mr-1.5 inline-block size-2 rounded-full align-middle"
         style={{ backgroundColor: group.color }}
       />
       <span className="font-medium text-foreground">{cause.label}</span>
-      {withGroup && <span className="text-muted-foreground">· {group.label}</span>}
+      {withGroup && <span className="text-muted-foreground"> · {group.label}</span>}
     </span>
   )
 }

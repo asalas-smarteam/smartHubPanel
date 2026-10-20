@@ -149,6 +149,24 @@ describe('G4: errores de corridas en la vista de cliente', () => {
   })
 })
 
+describe('G7: corrida de la cola con el detalle solo en errorMessage', () => {
+  it('cliente: resumen con el primer mensaje y errores derivados, con su evento', async () => {
+    renderApp({ route: '/syncs/sync-acme-q07', session: client })
+    expect(await screen.findByRole('region', { name: 'Mensaje de error' })).toHaveTextContent(
+      '2 errores en la corrida: El artículo ITEM-0042 no existe en el sistema destino.',
+    )
+    const table = await screen.findByRole('table', { name: 'Errores de la corrida' })
+    const rows = within(table).getAllByRole('row').slice(1)
+    expect(rows).toHaveLength(2)
+    expect(within(rows[0]).getByText('18374652901')).toBeInTheDocument()
+    expect(
+      within(rows[0]).getByText('El artículo ITEM-0042 no existe en el sistema destino.'),
+    ).toBeInTheDocument()
+    expect(within(rows[0]).getByRole('link')).toHaveAttribute('href', '/eventos/ev-acme-001')
+    expect(within(rows[1]).getByText('Error sin detalle')).toBeInTheDocument()
+  })
+})
+
 describe('G5: contexto del ticket con la causa', () => {
   it('"Nuevo ticket" desde un evento muestra la causa en el resumen', async () => {
     renderApp({ route: '/soporte/nuevo?contexto=evento&id=ev-acme-001', session: client })
