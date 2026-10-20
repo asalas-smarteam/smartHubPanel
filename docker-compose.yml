@@ -2,9 +2,5 @@ services:
   panel:
     build: .
     ports:
-      - "127.0.0.1:3007:3007"
-    environment:
-      PANEL_API_UPSTREAM: http://host.docker.internal:3000   # el backend publicado en el VPS
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - '127.0.0.1:3007:3007'
     restart: unless-stopped
