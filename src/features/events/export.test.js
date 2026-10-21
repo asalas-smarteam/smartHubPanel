@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import { CELL_LIMIT } from '@/lib/xlsx/workbook'
 
-import { jsonCell, REPORT_COLUMNS, reportFileName, reportSheets, TRUNCATED_NOTE } from './export'
+import {
+  eventFileName,
+  jsonCell,
+  REPORT_COLUMNS,
+  reportFileName,
+  reportSheets,
+  TRUNCATED_NOTE,
+} from './export'
 
 const event = (id, type, extra = {}) => ({
   id,
@@ -25,6 +32,19 @@ describe('exportar eventos', () => {
     )
     expect(reportFileName(new Date(2026, 0, 2, 3, 4, 5), null)).toBe(
       '2026-01-02 03-04-05 Events report.xlsx',
+    )
+  })
+
+  it('nombre del archivo de un solo evento: referencia, o el id si no tiene (plan 4u)', () => {
+    const date = new Date(2026, 9, 21, 12, 30, 5)
+    expect(eventFileName(date, 'Printer', { id: 'ev-1', reference: '64467708954' })).toBe(
+      '2026-10-21 12-30-05 Printer Event 64467708954.xlsx',
+    )
+    expect(eventFileName(date, null, { id: 'ev-1', reference: null })).toBe(
+      '2026-10-21 12-30-05 Event ev-1.xlsx',
+    )
+    expect(eventFileName(date, 'A/B', { id: 'x', reference: 'R:1' })).toBe(
+      '2026-10-21 12-30-05 A B Event R 1.xlsx',
     )
   })
 

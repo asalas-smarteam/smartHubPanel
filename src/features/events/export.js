@@ -28,14 +28,24 @@ export const REPORT_COLUMNS = [
   { header: 'Id', width: 28 },
 ]
 
-/** "2026-10-14 16-01-05 Printer Events report.xlsx" (hora local; Windows no admite ":"). */
-export function reportFileName(date, companyName) {
-  const stamp = format(date, 'yyyy-MM-dd HH-mm-ss')
-  const company = (companyName ?? '')
+/** Texto apto para un nombre de archivo: sin caracteres que Windows no admite. */
+const fileNamePart = (text) =>
+  String(text ?? '')
     .replace(/[\\/:*?"<>|]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-  return `${[stamp, company, 'Events report'].filter(Boolean).join(' ')}.xlsx`
+
+const fileName = (date, parts) =>
+  `${[format(date, 'yyyy-MM-dd HH-mm-ss'), ...parts.map(fileNamePart)].filter(Boolean).join(' ')}.xlsx`
+
+/** "2026-10-14 16-01-05 Printer Events report.xlsx" (hora local; Windows no admite ":"). */
+export function reportFileName(date, companyName) {
+  return fileName(date, [companyName, 'Events report'])
+}
+
+/** "2026-10-21 12-30-05 Printer Event 64467708954.xlsx": un solo evento (plan 4u). */
+export function eventFileName(date, companyName, event) {
+  return fileName(date, [companyName, 'Event', event.reference || event.id])
 }
 
 /** JSON compacto para una celda; si no entra en Excel, se corta con aviso. */

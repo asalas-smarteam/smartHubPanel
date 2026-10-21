@@ -18,6 +18,7 @@ import { formatDateTime } from '@/lib/dates'
 import { useEvent } from './api'
 import { EVENT_PROBLEM_STATUSES, eventTypeLabel } from './constants'
 import { EventStatusBadge } from './event-status-badge'
+import { ExportEventButton } from './export-event-button'
 
 const EXCHANGE_PARTS = [
   { key: 'received', title: 'Recibido del CRM' },
@@ -116,9 +117,12 @@ export function EventPage() {
           </div>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <h1 className="text-2xl font-bold tracking-tight">{eventTypeLabel(data.type)}</h1>
-            {EVENT_PROBLEM_STATUSES.includes(data.status) && (
-              <ReportProblemButton kind="evento" id={data.id} />
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <ExportEventButton event={data} exchange={exchange} companyName={companyName} />
+              {EVENT_PROBLEM_STATUSES.includes(data.status) && (
+                <ReportProblemButton kind="evento" id={data.id} />
+              )}
+            </div>
           </div>
         </div>
 
