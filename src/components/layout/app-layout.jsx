@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sheet'
 import { PERMISSIONS, usePermissions } from '@/features/auth/permissions'
 import { useLogout, useSession } from '@/features/auth/session'
+import { TicketAlerts } from '@/features/alerts/ticket-alerts'
 import { cn } from '@/lib/utils'
 
 import { visibleNavItems } from './nav'
@@ -97,6 +98,8 @@ export function AppLayout() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
+            {/* Avisos de tickets nuevos y respuestas, solo Smarteam (plan 4v). */}
+            {can(PERMISSIONS.STAFF_TICKETS) && <TicketAlerts />}
             {can(PERMISSIONS.STAFF_USERS) && (
               <Button asChild variant="outline" size="sm">
                 <Link to="/cuenta/contrasena" aria-label="Cambiar contraseña">

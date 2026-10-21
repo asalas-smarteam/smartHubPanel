@@ -17,6 +17,7 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 | [`07-intercambio-evento.md`](07-intercambio-evento.md) | Plan 4i del panel | **H1**: campo `exchange` (recibido, enviado y respuesta) en el detalle del evento, saneado para cuentas cliente. Implementado en el plan 5c del backend (nota al final del archivo). |
 | [`08-mapeo-campos.md`](08-mapeo-campos.md) | Plan 4p del panel | **I1 a I4**: lista de mapeos de campos de la empresa (solo lectura), permiso `mappings.read` y nombres genéricos. |
 | [`09-tareas-programadas.md`](09-tareas-programadas.md) | Plan 4r del panel | **J1 a J5**: tareas programadas de la empresa (solo lectura), nombres genéricos, campos que nunca salen y permiso `tasks.read`. |
+| [`10-aviso-slack.md`](10-aviso-slack.md) | Plan 4v del panel | **K1 a K6**: mensaje en Slack cuando un cliente crea un ticket (empresa, código, título y enlace), configuración por `.env` y que nunca afecte la creación. |
 
 ## Planes del backend preparados desde el front
 
