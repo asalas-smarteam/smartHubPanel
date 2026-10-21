@@ -1,5 +1,6 @@
 import { AppLayout } from '@/components/layout/app-layout'
 import { NotFoundPage, RouteErrorPage } from '@/components/page-states'
+import { StaffPreview } from '@/components/under-construction'
 import { AccountPasswordPage } from '@/features/auth/account-password-page'
 import { ChangePasswordPage } from '@/features/auth/change-password-page'
 import {
@@ -37,10 +38,20 @@ const TaskPage = lazyPage(() => import('@/features/tasks/task-page'), 'TaskPage'
 const MappingsPage = lazyPage(() => import('@/features/mappings/mappings-page'), 'MappingsPage')
 const UsersPage = lazyPage(() => import('@/features/users/users-page'), 'UsersPage')
 
-const withPermission = (permission, Page) => ({
+// Tareas programadas: solo Smarteam por ahora (21-10-2026); el cliente ve "En construcción"
+// (plan 4t). Para liberarla, volver a usar TasksPage y TaskPage directo en las rutas.
+const TASKS_PREVIEW = {
+  title: 'Tareas programadas',
+  description:
+    'Estamos preparando esta sección. Pronto vas a poder ver aquí las tareas programadas de tu empresa.',
+}
+const tasksPreview = (page) => <StaffPreview {...TASKS_PREVIEW}>{page}</StaffPreview>
+
+const permissionRoute = (permission, element) => ({
   element: <RequirePermission permission={permission} />,
-  children: [{ index: true, element: <Page /> }],
+  children: [{ index: true, element }],
 })
+const withPermission = (permission, Page) => permissionRoute(permission, <Page />)
 
 /** Tabla de rutas de la app (la usan el router del navegador y los tests). */
 export const routes = [
@@ -86,8 +97,14 @@ export const routes = [
               { path: 'eventos/:id', ...withPermission(PERMISSIONS.EVENTS_READ, EventPage) },
               { path: 'syncs', ...withPermission(PERMISSIONS.SYNCS_READ, SyncsPage) },
               { path: 'syncs/:id', ...withPermission(PERMISSIONS.SYNCS_READ, SyncPage) },
-              { path: 'tareas', ...withPermission(PERMISSIONS.TASKS_READ, TasksPage) },
-              { path: 'tareas/:id', ...withPermission(PERMISSIONS.TASKS_READ, TaskPage) },
+              {
+                path: 'tareas',
+                ...permissionRoute(PERMISSIONS.TASKS_READ, tasksPreview(<TasksPage />)),
+              },
+              {
+                path: 'tareas/:id',
+                ...permissionRoute(PERMISSIONS.TASKS_READ, tasksPreview(<TaskPage />)),
+              },
               { path: 'mapeos', ...withPermission(PERMISSIONS.MAPPINGS_READ, MappingsPage) },
               { path: 'usuarios', ...withPermission(PERMISSIONS.STAFF_USERS, UsersPage) },
               // Cambio voluntario de contraseña, solo Smarteam (plan 4s).

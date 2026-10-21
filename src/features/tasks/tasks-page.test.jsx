@@ -12,7 +12,11 @@ const acme = SEED_SCHEDULED_TASKS.filter((task) => task.tenantKey === 'ACME')
 const products = acme.find((task) => task.name === 'Productos')
 const contacts = acme.find((task) => task.name === 'Contactos')
 
-async function openTasks(route = '/tareas', session = client) {
+// La vista real es solo de Smarteam por ahora (plan 4t): se prueba con ACME elegida.
+const ACME_ROUTE = '/tareas?empresa=ACME'
+const ACME_TASKS_API = '/api/staff/tenants/ACME/scheduled-tasks'
+
+async function openTasks(route = ACME_ROUTE, session = staff) {
   const app = renderApp({ route, session })
   const table = await screen.findByRole('table', { name: 'Tareas programadas' })
   await waitFor(() => expect(table).not.toHaveAttribute('aria-busy'))
@@ -24,8 +28,26 @@ const rowOf = (table, name) =>
   bodyRows(table).find((row) => within(row).queryByRole('link', { name }))
 
 describe('Tareas programadas', () => {
-  it('cliente: lista con resumen, horario en texto y zona horaria', async () => {
+  it('cliente: ve "En construcción" en la lista y el detalle, sin pedir las tareas', async () => {
     const requests = recordRequests('/api/scheduled-tasks')
+    const { router } = renderApp({ route: '/tareas', session: client })
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Tareas programadas' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('En construcción')).toBeInTheDocument()
+    expect(screen.getByText(/Estamos preparando esta sección/)).toBeInTheDocument()
+    // El menú la sigue mostrando.
+    expect(screen.getByRole('link', { name: 'Tareas programadas' })).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+
+    await router.navigate(`/tareas/${products.id}`)
+    expect(await screen.findByText('En construcción')).toBeInTheDocument()
+    expect(screen.queryByText('Productos')).not.toBeInTheDocument()
+    expect(requests).toHaveLength(0)
+  })
+
+  it('Smarteam: lista con resumen, horario en texto y zona horaria', async () => {
+    const requests = recordRequests(ACME_TASKS_API)
     const { table } = await openTasks()
     expect(requests).toHaveLength(1)
     expect(screen.getByText(/horas en hora de Costa Rica/)).toBeInTheDocument()
@@ -58,7 +80,7 @@ describe('Tareas programadas', () => {
     const { user, router, table } = await openTasks()
     await user.click(within(rowOf(table, 'Productos')).getByRole('link', { name: 'Ver corridas' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/syncs'))
-    expect(router.state.location.search).toBe(`?taskId=${products.id}`)
+    expect(router.state.location.search).toBe(`?empresa=ACME&taskId=${products.id}`)
   })
 
   it('filtro por estado y tipo, en la URL', async () => {
@@ -94,12 +116,12 @@ describe('Tareas programadas', () => {
     )
     expect(screen.getByRole('link', { name: 'Ver corridas' })).toHaveAttribute(
       'href',
-      `/syncs?taskId=${contacts.id}`,
+      `/syncs?empresa=ACME&taskId=${contacts.id}`,
     )
   })
 
   it('detalle con filtro "es uno de" y sin orden', async () => {
-    renderApp({ route: `/tareas/${products.id}`, session: client })
+    renderApp({ route: `/tareas/${products.id}?empresa=ACME`, session: staff })
     const filters = await screen.findByRole('table', { name: 'Filtros de la tarea' })
     expect(filters).toHaveTextContent('es uno de')
     expect(filters).toHaveTextContent('101, 102, 105, 106, 107, 108')
@@ -107,7 +129,7 @@ describe('Tareas programadas', () => {
   })
 
   it('una tarea que no está en la lista: "No encontramos esa tarea"', async () => {
-    renderApp({ route: '/tareas/no-existe', session: client })
+    renderApp({ route: '/tareas/no-existe?empresa=ACME', session: staff })
     expect(await screen.findByText('No encontramos esa tarea')).toBeInTheDocument()
   })
 
