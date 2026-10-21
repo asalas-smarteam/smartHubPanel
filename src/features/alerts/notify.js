@@ -61,12 +61,18 @@ export async function requestNotificationPermission() {
 
 /**
  * Notificación del sistema; al hacer clic enfoca el panel y llama a `onClick`.
+ * `silent`: sin el sonido del sistema (cuando ya sonó el timbre del panel).
  * Sin permiso no hace nada (queda el aviso dentro del panel).
  */
-export function showSystemNotification({ title, body, tag, onClick }) {
+export function showSystemNotification({ title, body, tag, silent = false, onClick }) {
   if (notificationPermission() !== 'granted') return null
   try {
-    const notification = new window.Notification(title, { body, tag, icon: '/favicon.svg' })
+    const notification = new window.Notification(title, {
+      body,
+      tag,
+      silent,
+      icon: '/favicon.svg',
+    })
     notification.onclick = () => {
       window.focus()
       onClick?.()

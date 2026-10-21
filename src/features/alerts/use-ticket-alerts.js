@@ -15,12 +15,14 @@ import {
   newsKey,
 } from './detect'
 import { claimAlerts, showSystemNotification } from './notify'
+import { playChime } from './sound'
 
 export const ALERTS_QUERY_KEY = [...INBOX_QUERY_KEY, 'alerts']
 
 /**
  * Revisa la bandeja cada minuto (también con la pestaña en segundo plano) y avisa de tickets
- * nuevos y respuestas del cliente: notificación del sistema, aviso en el panel y Bandeja al día.
+ * nuevos y respuestas del cliente: un sonido, notificación del sistema, aviso en el panel y
+ * Bandeja al día.
  * @param {{ enabled: boolean }} options
  */
 export function useTicketAlerts({ enabled }) {
@@ -63,6 +65,9 @@ export function useTicketAlerts({ enabled }) {
 
     const message = alertMessage(toAlert)
     const open = () => navigate(message.href)
+    // Un solo sonido: el timbre del panel si el navegador ya lo deja (hubo un clic); si no, el de
+    // la notificación del sistema, que suena aunque la pestaña esté oculta o recién recargada.
+    const chimed = playChime()
     toast.info(message.title, {
       description: message.body,
       action: { label: 'Ver', onClick: open },
@@ -71,6 +76,7 @@ export function useTicketAlerts({ enabled }) {
       title: message.title,
       body: message.body,
       tag: newsKey(toAlert[0]),
+      silent: chimed,
       onClick: open,
     })
   }, [data, queryClient, navigate])

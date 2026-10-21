@@ -1,5 +1,9 @@
 # 10. Aviso de tickets nuevos en Slack (K1 a K6)
 
+> **En pausa (21-10-2026): no se implementa por ahora.** Smarteam decidió no enviar nada a Slack
+> todavía; el aviso de tickets queda en el panel (sonido y notificación del sistema, planes 4v y
+> 4w). Este documento queda como referencia para retomarlo.
+
 Pedido del front, plan 4v (`docs/plans/2026-10-21-panel-avisos-tickets.md`). Reglas comunes en
 [`00-reglas-generales.md`](00-reglas-generales.md). **No cambia ningún endpoint ni respuesta de la
 API**: es un efecto secundario de crear un ticket.

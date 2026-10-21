@@ -1,9 +1,8 @@
 # Plan 4v — Avisos de tickets para Smarteam
 
-Aprobado el 21-10-2026. Sin sonido (los navegadores no dejan sonar sin un clic previo en la
-página); el aviso que llega siempre es el de Slack.
+Aprobado el 21-10-2026. Slack quedó en pausa el mismo día; se agregó el sonido (plan 4w, abajo).
 
-## A. Slack (backend)
+## A. Slack (backend) — en pausa
 
 Contrato `docs/contrato-backend/10-aviso-slack.md` (K1 a K6): cuando un cliente crea un ticket, el
 backend manda al canal "Nuevo ticket · Empresa" con el código y el título enlazados al ticket en
@@ -28,3 +27,19 @@ si Slack falla, el ticket se crea igual. Solo tickets nuevos.
 - `src/features/alerts/detect.js`, `notify.js`, `use-ticket-alerts.js`, `ticket-alerts.jsx`.
 - `src/components/layout/app-layout.jsx`: el botón en la barra.
 - Tests: `src/features/alerts/detect.test.js`, `src/app/plan4v.test.jsx`.
+
+## Plan 4w — Un sonido por aviso
+
+Aprobado el 21-10-2026. Cada aviso suena **una vez**, con la pestaña visible, oculta o el
+navegador minimizado. Nunca suena doble:
+
+- Si el navegador ya deja sonar (hubo un clic o una tecla en la página, por ejemplo al activar
+  "Avisos"): timbre del panel (`sound.js`, Web Audio, dos notas, sin archivo) y la notificación
+  del sistema sale con `silent: true`.
+- Si no (página recién recargada, sin clic): suena la notificación del sistema (sonido de
+  Windows/Mac), que no necesita clic. El primer clic o tecla habilita el timbre para los próximos.
+- Sin timbre habilitado y con notificaciones bloqueadas no hay forma de sonar: el botón "Avisos"
+  lo indica ("Haz clic en la página para activar el sonido").
+
+Archivos: `src/features/alerts/sound.js` (nuevo); ajustes en `use-ticket-alerts.js`,
+`notify.js` y `ticket-alerts.jsx`. Tests en `src/app/plan4v.test.jsx`.

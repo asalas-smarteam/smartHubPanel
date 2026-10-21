@@ -1,7 +1,9 @@
-// Plan 4v: avisos de tickets nuevos y respuestas para Smarteam (notificación del sistema).
+// Planes 4v y 4w: avisos de tickets nuevos y respuestas para Smarteam (sonido y notificación).
 import { screen, waitFor } from '@testing-library/react'
+import { toast } from 'sonner'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { resetSoundForTests } from '@/features/alerts/sound'
 import { ALERTS_QUERY_KEY } from '@/features/alerts/use-ticket-alerts'
 import { addMessage, changeStatus, getTickets } from '@/mocks/tickets-db'
 import { DEMO_ACCOUNTS, renderApp } from '@/test/render'
@@ -27,7 +29,29 @@ class FakeNotification {
   close() {}
 }
 
+// Web Audio simulado: cuenta cuántas notas suenan.
+let notes
+class FakeAudioContext {
+  state = 'suspended'
+  currentTime = 0
+  destination = {}
+  async resume() {
+    this.state = 'running'
+  }
+  createOscillator() {
+    return { frequency: {}, connect() {}, start: () => notes.push(1), stop() {} }
+  }
+  createGain() {
+    const param = { setValueAtTime() {}, exponentialRampToValueAtTime() {} }
+    return { gain: param, connect() {} }
+  }
+}
+const chimes = () => notes.length / 2
+
 beforeEach(() => {
+  notes = []
+  resetSoundForTests()
+  vi.stubGlobal('AudioContext', FakeAudioContext)
   shown = []
   nextPermission = 'granted'
   FakeNotification.permission = 'default'
@@ -36,6 +60,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  toast.dismiss()
   vi.unstubAllGlobals()
   window.localStorage.removeItem('panel-alerts')
   window.localStorage.removeItem('panel-alerts-seen')
@@ -89,6 +114,9 @@ describe('avisos de tickets (Smarteam)', () => {
     await waitFor(() => expect(shown).toHaveLength(1))
     expect(shown[0].title).toBe('Nuevo ticket · Acme Industrial')
     expect(shown[0].options.body).toBe('ACME-0999 · No sincroniza cotizaciones')
+    // Un solo sonido: el timbre (hubo clic en "Avisos"); la notificación sale en silencio.
+    expect(chimes()).toBe(1)
+    expect(shown[0].options.silent).toBe(true)
     expect(await screen.findByText('Nuevo ticket · Acme Industrial')).toBeInTheDocument()
 
     // Clic en la notificación: abre el ticket.
@@ -97,9 +125,10 @@ describe('avisos de tickets (Smarteam)', () => {
       expect(app.router.state.location.pathname).toBe('/bandeja/ACME/tk-aviso-nuevo'),
     )
 
-    // Sin cambios no se repite.
+    // Sin cambios no se repite ni suena.
     await check(app)
     expect(shown).toHaveLength(1)
+    expect(chimes()).toBe(1)
   })
 
   it('respuesta del cliente avisa; una acción de Smarteam no', async () => {
@@ -110,11 +139,45 @@ describe('avisos de tickets (Smarteam)', () => {
     ticket.staffLastSeenAt = ticket.lastActivityAt
     await check(app)
     expect(shown).toHaveLength(0)
+    expect(chimes()).toBe(0)
 
     addMessage(ticket, { authorType: 'cliente', user: { id: 'u1', name: 'Cliente' }, body: 'Hola' })
     await check(app)
     await waitFor(() => expect(shown).toHaveLength(1))
     expect(shown[0].title).toBe('Nueva respuesta · Acme Industrial')
+  })
+
+  it('recién recargada (sin clic): suena la notificación del sistema; el clic habilita el timbre', async () => {
+    window.localStorage.setItem('panel-alerts', 'on')
+    FakeNotification.permission = 'granted'
+    const app = renderApp({ route: '/usuarios', session: staff })
+    await waitFor(() =>
+      expect(app.queryClient.getQueryState(ALERTS_QUERY_KEY)?.dataUpdatedAt).toBeGreaterThan(0),
+    )
+    addNewTicket()
+    await check(app)
+    await waitFor(() => expect(shown).toHaveLength(1))
+    expect(chimes()).toBe(0)
+    expect(shown[0].options.silent).toBe(false)
+
+    // Cualquier clic en la página habilita el timbre para el siguiente aviso.
+    await app.user.click(await screen.findByRole('heading', { level: 1 }))
+    const ticket = getTickets().find((t) => t.id === 'tk-aviso-nuevo')
+    addMessage(ticket, { authorType: 'cliente', user: { id: 'u1', name: 'Cliente' }, body: 'Más' })
+    await check(app)
+    await waitFor(() => expect(shown).toHaveLength(2))
+    expect(chimes()).toBe(1)
+    expect(shown[1].options.silent).toBe(true)
+  })
+
+  it('sin timbre ni notificaciones, el botón pide un clic para activar el sonido', async () => {
+    window.localStorage.setItem('panel-alerts', 'on')
+    FakeNotification.permission = 'denied'
+    renderApp({ route: '/usuarios', session: staff })
+    expect(await screen.findByRole('button', { name: 'Avisos' })).toHaveAttribute(
+      'title',
+      'Haz clic en la página para activar el sonido',
+    )
   })
 
   it('con las notificaciones bloqueadas, avisa solo dentro del panel', async () => {
@@ -125,6 +188,8 @@ describe('avisos de tickets (Smarteam)', () => {
     await check(app)
     expect(await screen.findByText('Nuevo ticket · Acme Industrial')).toBeInTheDocument()
     expect(shown).toHaveLength(0)
+    // El timbre suena igual (hubo clic en "Avisos").
+    expect(chimes()).toBe(1)
   })
 
   it('apagado no revisa la bandeja; el cliente no ve el botón', async () => {
