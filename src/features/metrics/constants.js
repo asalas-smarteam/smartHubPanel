@@ -14,14 +14,21 @@ export const DEFAULT_METRICS_PERIOD = 90
 /** Desde este largo, las columnas se agrupan por mes (F8: el backend siempre manda semanas). */
 export const MONTHLY_FROM_DAYS = 365
 
-/** Rangos de tiempo de resolución (F8), en el orden de BUCKET_KEYS. */
+/** Los tiempos de tickets cuentan solo el horario hábil (plan 4x, contrato L1). */
+export const BUSINESS_HOURS_NOTE =
+  'Tiempos en horario hábil: lunes a viernes de 8:00 a 17:00 (hora de Costa Rica).'
+
+/**
+ * Rangos de tiempo de resolución (F8), en el orden de BUCKET_KEYS. En tiempo hábil (L3): un día
+ * hábil son 9 h; las claves se mantienen.
+ */
 export const BUCKETS = {
   lt4h: { label: 'Menos de 4 h', color: 'var(--chart-ok)' },
-  '4h_24h': { label: '4 a 24 h', color: 'var(--chart-1)' },
-  '1d_3d': { label: '1 a 3 días', color: 'var(--chart-warn)' },
-  gt3d: { label: 'Más de 3 días', color: 'var(--chart-bad)' },
+  '4h_24h': { label: '4 h a 1 día hábil', color: 'var(--chart-1)' },
+  '1d_3d': { label: '1 a 3 días hábiles', color: 'var(--chart-warn)' },
+  gt3d: { label: 'Más de 3 días hábiles', color: 'var(--chart-bad)' },
 }
-/** Rangos que suman "en menos de un día". */
+/** Rangos que suman "en menos de un día hábil". */
 export const SAME_DAY_BUCKETS = ['lt4h', '4h_24h']
 
 export const RESOLVED_SERIES = { label: 'Resueltos', color: 'var(--chart-1)' }

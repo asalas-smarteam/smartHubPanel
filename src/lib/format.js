@@ -43,30 +43,47 @@ const MINUTE = 60
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
+/** Un día hábil (lunes a viernes de 8:00 a 17:00): 9 h. */
+export const BUSINESS_DAY_SECONDS = 9 * HOUR
+
+function formatDuration(seconds, day, { compact = false, empty = EMPTY } = {}) {
+  if (!isNumber(seconds) || seconds < 0) return empty
+  const total = Math.round(seconds)
+  if (total < MINUTE) return `${total} s`
+  if (compact) {
+    if (total < HOUR) return `${Math.round(total / MINUTE)} min`
+    if (total < day) return `${Math.round(total / HOUR)} h`
+    return `${Math.round(total / day)} d`
+  }
+  if (total < HOUR) return `${Math.floor(total / MINUTE)} min`
+  if (total < day) {
+    const hours = Math.floor(total / HOUR)
+    const minutes = Math.floor((total % HOUR) / MINUTE)
+    return minutes ? `${hours} h ${String(minutes).padStart(2, '0')}` : `${hours} h`
+  }
+  const days = Math.floor(total / day)
+  const hours = Math.floor((total % day) / HOUR)
+  return hours ? `${days} d ${hours} h` : `${days} d`
+}
+
 /**
  * Duración en segundos para tableros: `35 s`, `52 min`, `1 h 20`, `3 d 4 h`.
  * Con `compact` redondea a la unidad mayor (`11 h`), para rótulos cortos.
  * @param {number | null | undefined} seconds
  * @param {{ compact?: boolean, empty?: string }} [options]
  */
-export function formatSeconds(seconds, { compact = false, empty = EMPTY } = {}) {
-  if (!isNumber(seconds) || seconds < 0) return empty
-  const total = Math.round(seconds)
-  if (total < MINUTE) return `${total} s`
-  if (compact) {
-    if (total < HOUR) return `${Math.round(total / MINUTE)} min`
-    if (total < DAY) return `${Math.round(total / HOUR)} h`
-    return `${Math.round(total / DAY)} d`
-  }
-  if (total < HOUR) return `${Math.floor(total / MINUTE)} min`
-  if (total < DAY) {
-    const hours = Math.floor(total / HOUR)
-    const minutes = Math.floor((total % HOUR) / MINUTE)
-    return minutes ? `${hours} h ${String(minutes).padStart(2, '0')}` : `${hours} h`
-  }
-  const days = Math.floor(total / DAY)
-  const hours = Math.floor((total % DAY) / HOUR)
-  return hours ? `${days} d ${hours} h` : `${days} d`
+export function formatSeconds(seconds, options) {
+  return formatDuration(seconds, DAY, options)
+}
+
+/**
+ * Duración en tiempo hábil (plan 4x): igual que `formatSeconds`, pero cada día son 9 h de
+ * oficina. 20 h hábiles → `2 d 2 h`; 5 h 30 → `5 h 30`.
+ * @param {number | null | undefined} seconds segundos hábiles
+ * @param {{ compact?: boolean, empty?: string }} [options]
+ */
+export function formatBusinessSeconds(seconds, options) {
+  return formatDuration(seconds, BUSINESS_DAY_SECONDS, options)
 }
 
 /**

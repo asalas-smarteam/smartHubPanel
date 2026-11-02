@@ -2,7 +2,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import { CATEGORY_LABELS } from '@/features/tickets/constants'
-import { formatNumber, formatPercent, formatSeconds } from '@/lib/format'
+import { formatBusinessSeconds, formatNumber, formatPercent } from '@/lib/format'
 
 import { SAME_DAY_BUCKETS } from './constants'
 
@@ -35,14 +35,14 @@ export function comparisonNote(current, previous, phrase) {
   return `${amount} ${difference > 0 ? 'más' : 'menos'} que los ${phrase} anteriores`
 }
 
-/** "43 de 64 (67 %) se resolvieron en menos de un día." o null sin resueltos. */
+/** "43 de 64 (67 %) se resolvieron en menos de un día hábil." o null sin resueltos. */
 export function bucketSentence(buckets) {
   const total = buckets.reduce((acc, bucket) => acc + bucket.count, 0)
   if (total === 0) return null
   const fast = buckets
     .filter((bucket) => SAME_DAY_BUCKETS.includes(bucket.key))
     .reduce((acc, bucket) => acc + bucket.count, 0)
-  return `${formatNumber(fast)} de ${formatNumber(total)} (${formatPercent(fast, total, 0)}) se resolvieron en menos de un día.`
+  return `${formatNumber(fast)} de ${formatNumber(total)} (${formatPercent(fast, total, 0)}) se resolvieron en menos de un día hábil.`
 }
 
 export const categoryLabel = (category) => CATEGORY_LABELS[category] ?? category
@@ -55,7 +55,7 @@ export function categorySentence(byCategory) {
     b.medianResolutionSeconds > a.medianResolutionSeconds ? b : a,
   )
   const label = categoryLabel(slowest.category)
-  const time = formatSeconds(slowest.medianResolutionSeconds)
+  const time = formatBusinessSeconds(slowest.medianResolutionSeconds)
   return slowest === byCategory[0]
     ? `${label} es la de más volumen y la más lenta de resolver (mediana ${time}).`
     : `${label} es la más lenta de resolver (mediana ${time}).`

@@ -18,6 +18,7 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 | [`08-mapeo-campos.md`](08-mapeo-campos.md) | Plan 4p del panel | **I1 a I4**: lista de mapeos de campos de la empresa (solo lectura), permiso `mappings.read` y nombres genéricos. |
 | [`09-tareas-programadas.md`](09-tareas-programadas.md) | Plan 4r del panel | **J1 a J5**: tareas programadas de la empresa (solo lectura), nombres genéricos, campos que nunca salen y permiso `tasks.read`. |
 | [`10-aviso-slack.md`](10-aviso-slack.md) | Plan 4v del panel (**en pausa**) | **K1 a K6**: mensaje en Slack cuando un cliente crea un ticket (empresa, código, título y enlace), configuración por `.env` y que nunca afecte la creación. |
+| [`11-metricas-horario-habil.md`](11-metricas-horario-habil.md) | Plan 4x del panel | **L1 a L5**: tiempos de las métricas de soporte en horario hábil (lunes a viernes, 8:00 a 17:00, hora de Costa Rica) y rangos de resolución en días hábiles de 9 h. |
 
 ## Planes del backend preparados desde el front
 

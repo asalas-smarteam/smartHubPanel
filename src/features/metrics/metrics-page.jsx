@@ -14,12 +14,13 @@ import { useTenants } from '@/features/tenants/api'
 import { TICKET_CATEGORIES } from '@/features/tickets/constants'
 import { CATEGORY_OPTIONS } from '@/features/tickets/options'
 import { formatShortDate } from '@/lib/dates'
-import { formatNumber, formatPercent, formatSeconds } from '@/lib/format'
+import { formatBusinessSeconds, formatNumber, formatPercent } from '@/lib/format'
 import { pickOption } from '@/lib/pagination'
 
 import { useTicketMetrics } from './api'
 import {
   BUCKETS,
+  BUSINESS_HOURS_NOTE,
   CATEGORY_PARAM,
   DEFAULT_METRICS_PERIOD,
   METRICS_PERIODS,
@@ -75,12 +76,12 @@ function Indicators({ totals, phrase }) {
       />
       <StatTile
         label="Primera respuesta"
-        value={formatSeconds(totals.medianFirstResponseSeconds)}
+        value={formatBusinessSeconds(totals.medianFirstResponseSeconds)}
         note="mediana desde que se abre"
       />
       <StatTile
         label="Resolución"
-        value={formatSeconds(totals.medianResolutionSeconds)}
+        value={formatBusinessSeconds(totals.medianResolutionSeconds)}
         note="mediana desde que se abre hasta resuelto"
       />
       <StatTile
@@ -116,7 +117,7 @@ function ResolvedOverTime({ byWeek, monthly }) {
         label: formatShortDate(week.weekStart),
         value: week.resolved,
         secondary: week.reopened,
-        note: formatSeconds(week.medianResolutionSeconds, { compact: true }),
+        note: formatBusinessSeconds(week.medianResolutionSeconds, { compact: true }),
       }))
   return (
     <ChartCard
@@ -174,7 +175,7 @@ function Categories({ byCategory }) {
           label: categoryLabel(entry.category),
           value: entry.resolved,
           color: 'var(--chart-1)',
-          note: formatSeconds(entry.medianResolutionSeconds),
+          note: formatBusinessSeconds(entry.medianResolutionSeconds),
         }))}
       />
     </ChartCard>
@@ -218,8 +219,12 @@ function ByTenant({ rows }) {
                     {row.companyName ?? row.tenantKey}
                   </th>
                   <td className={cellClass}>{formatNumber(row.resolved)}</td>
-                  <td className={cellClass}>{formatSeconds(row.medianFirstResponseSeconds)}</td>
-                  <td className={cellClass}>{formatSeconds(row.medianResolutionSeconds)}</td>
+                  <td className={cellClass}>
+                    {formatBusinessSeconds(row.medianFirstResponseSeconds)}
+                  </td>
+                  <td className={cellClass}>
+                    {formatBusinessSeconds(row.medianResolutionSeconds)}
+                  </td>
                   <td className={cellClass}>{formatNumber(row.reopened)}</td>
                   <td className={cellClass}>{formatNumber(row.open)}</td>
                 </tr>
@@ -321,6 +326,7 @@ export function MetricsPage() {
               ? 'Cuántos tickets se resuelven y en cuánto tiempo. El cliente ve esta misma pantalla, solo con los de su empresa.'
               : 'Cuántos tickets de tu empresa se resuelven y en cuánto tiempo.'}
           </p>
+          <p className="text-sm text-muted-foreground">{BUSINESS_HOURS_NOTE}</p>
         </div>
         <PeriodPicker value={filters.days} options={METRICS_PERIODS} onChange={filters.setDays} />
       </header>

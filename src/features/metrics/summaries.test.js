@@ -30,18 +30,18 @@ describe('métricas: resúmenes', () => {
     expect(comparisonNote(4, 4, '30 días')).toBe('igual que los 30 días anteriores')
   })
 
-  it('frase de rangos: cuántos en menos de un día', () => {
+  it('frase de rangos: cuántos en menos de un día hábil', () => {
     const buckets = [
       { key: 'lt4h', count: 18 },
       { key: '4h_24h', count: 25 },
       { key: '1d_3d', count: 15 },
       { key: 'gt3d', count: 6 },
     ]
-    expect(bucketSentence(buckets)).toBe('43 de 64 (67 %) se resolvieron en menos de un día.')
+    expect(bucketSentence(buckets)).toBe('43 de 64 (67 %) se resolvieron en menos de un día hábil.')
     expect(bucketSentence(buckets.map((b) => ({ ...b, count: 0 })))).toBeNull()
   })
 
-  it('frase de categorías: la más lenta', () => {
+  it('frase de categorías: la más lenta (tiempo hábil, días de 9 h)', () => {
     const entry = (category, resolved, median) => ({
       category,
       resolved,
@@ -49,9 +49,9 @@ describe('métricas: resúmenes', () => {
     })
     expect(
       categorySentence([entry('documentos', 22, 21600), entry('sincronizacion', 17, 68400)]),
-    ).toBe('Sincronización es la más lenta de resolver (mediana 19 h).')
+    ).toBe('Sincronización es la más lenta de resolver (mediana 2 d 1 h).')
     expect(categorySentence([entry('precios', 9, 90000), entry('acceso', 5, 3600)])).toBe(
-      'Precios es la de más volumen y la más lenta de resolver (mediana 1 d 1 h).',
+      'Precios es la de más volumen y la más lenta de resolver (mediana 2 d 7 h).',
     )
     expect(categorySentence([entry('otro', 3, 3600)])).toBeNull()
     expect(categorySentence([entry('otro', 3, 3600), entry('acceso', 1, null)])).toBeNull()

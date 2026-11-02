@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 
+import { BUSINESS_DAY_SECONDS, businessSeconds } from '../business-time'
 import { getDb } from '../db'
 import { addDays, localDate, median, mondayOf, readPeriod } from '../period'
 import { companyNameOf, getTickets } from '../tickets-db'
@@ -7,19 +8,23 @@ import { CATEGORIES } from './ticket-utils'
 import { authorize, errorResponse, maybeDelay } from './utils'
 
 // Métricas de soporte (contrato F7 a F9), calculadas desde los tickets del mock.
+// Tiempos en horario hábil (plan 4x, contrato L1 a L5): lunes a viernes de 8:00 a 17:00, hora
+// de Costa Rica.
 // Ojo: estas rutas van antes que `/tickets/:id` en handlers/index.js.
 
 const HOUR = 3600
+/** Límites en tiempo hábil (L3): 4 h, 1 día hábil (9 h), 3 días hábiles (27 h). */
 const BUCKETS = [
   ['lt4h', 4 * HOUR],
-  ['4h_24h', 24 * HOUR],
-  ['1d_3d', 72 * HOUR],
+  ['4h_24h', BUSINESS_DAY_SECONDS],
+  ['1d_3d', 3 * BUSINESS_DAY_SECONDS],
   ['gt3d', Infinity],
 ]
 
 const ms = (iso) => Date.parse(iso)
-const resolutionSeconds = (ticket) => (ms(ticket.resolvedAt) - ms(ticket.openedAt)) / 1000
-const firstResponseSeconds = (ticket) => (ms(ticket.firstResponseAt) - ms(ticket.openedAt)) / 1000
+const resolutionSeconds = (ticket) => businessSeconds(ms(ticket.openedAt), ms(ticket.resolvedAt))
+const firstResponseSeconds = (ticket) =>
+  businessSeconds(ms(ticket.openedAt), ms(ticket.firstResponseAt))
 const isOpen = (ticket) => ticket.status !== 'resuelto'
 
 /** Resueltos hoy cuya última resolución cae en `[from, to)` (F9). */

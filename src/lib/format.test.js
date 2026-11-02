@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatMilliseconds, formatNumber, formatPercent, formatSeconds, ratio } from './format'
+import {
+  formatBusinessSeconds,
+  formatMilliseconds,
+  formatNumber,
+  formatPercent,
+  formatSeconds,
+  ratio,
+} from './format'
 
 const NBSP = ' '
 
@@ -37,6 +44,24 @@ describe('ratio y formatPercent', () => {
 
   it('sin total no inventa un 0 %', () => {
     expect(formatPercent(0, 0)).toBe('—')
+  })
+})
+
+describe('formatBusinessSeconds (tiempo hábil: días de 9 h, plan 4x)', () => {
+  it.each([
+    [45, '45 s'],
+    [5 * 3600 + 30 * 60, '5 h 30'],
+    [9 * 3600, '1 d'],
+    [20 * 3600, '2 d 2 h'],
+    [27 * 3600, '3 d'],
+  ])('%i s → %s', (seconds, text) => {
+    expect(formatBusinessSeconds(seconds)).toBe(text)
+  })
+
+  it('compacta en días hábiles; vacío para null', () => {
+    expect(formatBusinessSeconds(20 * 3600, { compact: true })).toBe('2 d')
+    expect(formatBusinessSeconds(8 * 3600, { compact: true })).toBe('8 h')
+    expect(formatBusinessSeconds(null)).toBe('—')
   })
 })
 

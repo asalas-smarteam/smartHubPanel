@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { lastDaysRange } from '@/lib/dates'
-import { formatNumber, formatSeconds } from '@/lib/format'
+import { formatBusinessSeconds, formatNumber } from '@/lib/format'
 import { ticketMetrics } from '@/mocks/handlers/metrics'
 import { server } from '@/mocks/server'
 import { getTickets } from '@/mocks/tickets-db'
@@ -76,12 +76,29 @@ describe('Métricas: Smarteam', () => {
     const { totals } = expected(90)
     expect(await screen.findByText('Acme Industrial · últimos 90 días')).toBeInTheDocument()
     await waitFor(() => expect(tile('Resueltos')).toHaveTextContent(formatNumber(totals.resolved)))
-    expect(tile('Resolución')).toHaveTextContent(formatSeconds(totals.medianResolutionSeconds))
+    expect(tile('Resolución')).toHaveTextContent(
+      formatBusinessSeconds(totals.medianResolutionSeconds),
+    )
+    // Tiempos en horario hábil (plan 4x).
+    expect(
+      screen.getByText(
+        'Tiempos en horario hábil: lunes a viernes de 8:00 a 17:00 (hora de Costa Rica).',
+      ),
+    ).toBeInTheDocument()
     expect(tile('Abiertos ahora')).toHaveTextContent(formatNumber(totals.open))
     expect(
       screen.getByRole('table', { name: 'Resueltos por semana y tiempo de resolución' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: '¿En cuánto tiempo se resuelven?' })).toBeVisible()
+    const ranges = screen.getByRole('region', { name: '¿En cuánto tiempo se resuelven?' })
+    expect(ranges).toBeVisible()
+    for (const label of [
+      'Menos de 4 h',
+      '4 h a 1 día hábil',
+      '1 a 3 días hábiles',
+      'Más de 3 días hábiles',
+    ]) {
+      expect(within(ranges).getAllByText(label).length).toBeGreaterThan(0)
+    }
     expect(screen.getByRole('region', { name: 'Por categoría' })).toBeVisible()
   })
 

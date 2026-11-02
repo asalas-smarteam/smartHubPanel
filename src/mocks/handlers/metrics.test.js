@@ -48,25 +48,27 @@ function ticket({
 
 const TESTCO_TICKETS = [
   ticket({ opened: '2026-09-28T15:00:00.000Z', firstResponse: 1, resolved: 2 }), // < 4 h
-  ticket({ opened: '2026-09-29T15:00:00.000Z', firstResponse: 3, resolved: 10, reopenCount: 1 }), // 4 a 24 h
+  // Horas hábiles (plan 4x): abren a las 9:00 de Costa Rica.
+  ticket({ opened: '2026-09-29T15:00:00.000Z', firstResponse: 3, resolved: 10, reopenCount: 1 }), // 19:00 → 8 h hábiles
   ticket({
     opened: '2026-10-01T15:00:00.000Z',
     firstResponse: 0.5,
     resolved: 48,
     category: 'sincronizacion',
-  }), // 1 a 3 d
+  }), // jueves 9:00 → sábado: 8 h + 9 h = 17 h hábiles
   ticket({
     opened: '2026-10-02T15:00:00.000Z',
     firstResponse: 2,
-    resolved: 100,
+    resolved: 150,
     category: 'precios',
-  }), // > 3 d, semana del 05-10
+  }), // viernes 9:00 → jueves 15:00: 8 + 9 + 9 + 9 + 7 = 42 h hábiles, semana del 05-10
   // Resuelto en el período anterior.
   ticket({ opened: '2026-09-20T15:00:00.000Z', firstResponse: 1, resolved: 2 }),
   // Abiertos ahora (no dependen del período).
   ticket({ opened: '2026-10-08T15:00:00.000Z', firstResponse: 1, status: 'en_progreso' }),
   ticket({ opened: '2026-10-10T15:00:00.000Z', status: 'abierto', category: 'acceso' }),
-  // Abierto en el período, se resuelve después: cuenta su primera respuesta, no su resolución.
+  // Abierto en el período (domingo), se resuelve después: cuenta su primera respuesta (0 s
+  // hábiles: es domingo), no su resolución.
   ticket({ opened: '2026-10-11T15:00:00.000Z', firstResponse: 1, resolved: 19 }),
   // Reabierto hoy: tuvo una resolución en el período, pero ya no está resuelto.
   ticket({
@@ -102,16 +104,16 @@ describe('métricas de tickets (F7 a F9)', () => {
       reopened: 1,
       open: 3,
       openWithoutFirstResponse: 1,
-      medianFirstResponseSeconds: 3600, // abiertos en el período: 1 h, 3 h, 30 min, 2 h, 1 h, 1 h
-      medianResolutionSeconds: 104_400, // (10 h + 48 h) / 2
+      medianFirstResponseSeconds: 3600, // hábiles: 1 h, 3 h, 30 min, 2 h, 1 h y 0 (domingo)
+      medianResolutionSeconds: 12.5 * HOUR, // 2 h, 8 h, 17 h, 42 h → (8 h + 17 h) / 2
     })
   })
 
   it('semanas desde el lunes en la zona pedida, rangos y categorías', async () => {
     const body = await staffMetrics()
     expect(body.byWeek).toEqual([
-      { weekStart: '2026-09-28', resolved: 3, reopened: 1, medianResolutionSeconds: 10 * HOUR },
-      { weekStart: '2026-10-05', resolved: 1, reopened: 0, medianResolutionSeconds: 100 * HOUR },
+      { weekStart: '2026-09-28', resolved: 3, reopened: 1, medianResolutionSeconds: 8 * HOUR },
+      { weekStart: '2026-10-05', resolved: 1, reopened: 0, medianResolutionSeconds: 42 * HOUR },
     ])
     expect(body.buckets).toEqual([
       { key: 'lt4h', count: 1 },
@@ -120,9 +122,9 @@ describe('métricas de tickets (F7 a F9)', () => {
       { key: 'gt3d', count: 1 },
     ])
     expect(body.byCategory).toEqual([
-      { category: 'documentos', resolved: 2, medianResolutionSeconds: 6 * HOUR },
-      { category: 'precios', resolved: 1, medianResolutionSeconds: 100 * HOUR },
-      { category: 'sincronizacion', resolved: 1, medianResolutionSeconds: 48 * HOUR },
+      { category: 'documentos', resolved: 2, medianResolutionSeconds: 5 * HOUR },
+      { category: 'precios', resolved: 1, medianResolutionSeconds: 42 * HOUR },
+      { category: 'sincronizacion', resolved: 1, medianResolutionSeconds: 17 * HOUR },
     ])
   })
 
@@ -133,7 +135,7 @@ describe('métricas de tickets (F7 a F9)', () => {
         companyName: 'Empresa de prueba',
         resolved: 4,
         medianFirstResponseSeconds: 3600,
-        medianResolutionSeconds: 104_400,
+        medianResolutionSeconds: 12.5 * HOUR,
         reopened: 1,
         open: 3,
       },

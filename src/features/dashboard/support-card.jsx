@@ -6,7 +6,7 @@ import { StatTile } from '@/components/charts/stat-tile'
 import { ErrorState, LoadingState } from '@/components/page-states'
 import { useTicketMetrics } from '@/features/metrics/api'
 import { formatShortDate } from '@/lib/dates'
-import { formatNumber, formatSeconds } from '@/lib/format'
+import { formatBusinessSeconds, formatNumber } from '@/lib/format'
 
 /** "Tu soporte" en el Inicio del cliente: resumen de sus tickets en el mismo período (F7). */
 export function SupportCard({ days }) {
@@ -38,14 +38,14 @@ export function SupportCard({ days }) {
             <StatTile
               size="sm"
               label="Resolución (mediana)"
-              value={formatSeconds(totals.medianResolutionSeconds)}
-              note="desde que se abre"
+              value={formatBusinessSeconds(totals.medianResolutionSeconds)}
+              note="en horario hábil"
             />
             <StatTile
               size="sm"
               label="Primera respuesta"
-              value={formatSeconds(totals.medianFirstResponseSeconds)}
-              note="mediana"
+              value={formatBusinessSeconds(totals.medianFirstResponseSeconds)}
+              note="mediana, en horario hábil"
             />
             <StatTile
               size="sm"
