@@ -1,4 +1,4 @@
-import { KeyRoundIcon, LogOutIcon, MenuIcon } from 'lucide-react'
+import { LogOutIcon, MenuIcon, UserRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 
@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { accountHome } from '@/features/account/account-links'
 import { PERMISSIONS, usePermissions } from '@/features/auth/permissions'
 import { useLogout, useSession } from '@/features/auth/session'
 import { TicketAlerts } from '@/features/alerts/ticket-alerts'
@@ -54,6 +55,7 @@ export function AppLayout() {
 
   const user = session?.user
   const items = visibleNavItems(can)
+  const accountPath = accountHome(can)
 
   async function handleLogout() {
     try {
@@ -100,11 +102,12 @@ export function AppLayout() {
             <ThemeToggle />
             {/* Avisos de tickets nuevos y respuestas, solo Smarteam (plan 4v). */}
             {can(PERMISSIONS.STAFF_TICKETS) && <TicketAlerts />}
-            {can(PERMISSIONS.STAFF_USERS) && (
+            {/* Mi cuenta: contraseña y tokens de API, solo Smarteam (planes 4s y 4z). */}
+            {accountPath && (
               <Button asChild variant="outline" size="sm">
-                <Link to="/cuenta/contrasena" aria-label="Cambiar contraseña">
-                  <KeyRoundIcon aria-hidden="true" />
-                  <span className="hidden sm:inline">Contraseña</span>
+                <Link to={accountPath} aria-label="Mi cuenta">
+                  <UserRoundIcon aria-hidden="true" />
+                  <span className="hidden sm:inline">Cuenta</span>
                 </Link>
               </Button>
             )}

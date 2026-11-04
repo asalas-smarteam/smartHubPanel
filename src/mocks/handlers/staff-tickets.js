@@ -9,6 +9,7 @@ import {
   getTickets,
   isTenantFailing,
   readAttachment,
+  resolveTicket,
   save,
   toStaffDetail,
   toStaffListItem,
@@ -180,20 +181,12 @@ export const staffTicketHandlers = [
     const images = await readImages(form)
     if (images.response) return images.response
 
-    addMessage(ticket, {
-      authorType: 'smarteam',
+    resolveTicket(ticket, {
       user,
-      body: message.text,
+      message: message.text,
+      internalResolution: internal.text,
       attachments: images.attachments,
     })
-    const now = new Date().toISOString()
-    ticket.internalResolution = {
-      text: internal.text,
-      updatedAt: now,
-      updatedBy: { userId: user.id, name: user.name },
-    }
-    changeStatus(ticket, 'resuelto', { byType: 'smarteam', user })
-    ticket.resolvedAt = now
     save()
     return HttpResponse.json(toStaffDetail(ticket))
   }),

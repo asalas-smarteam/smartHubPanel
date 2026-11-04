@@ -1,3 +1,4 @@
+import { apiTokenHandlers } from './api-tokens'
 import { authHandlers } from './auth'
 import { dashboardHandlers } from './dashboard'
 import { eventHandlers } from './events'
@@ -9,10 +10,14 @@ import { staffTenantsHandlers } from './staff-tenants'
 import { staffUsersHandlers } from './staff-users'
 import { syncHandlers } from './syncs'
 import { ticketHandlers } from './tickets'
+import { workLogHandlers } from './work-log'
 
 /** Handlers de MSW de la API del panel, según el contrato del spec y el plan 4a §3. */
 export const handlers = [
   ...authHandlers,
+  // Tokens personales y registro de trabajo (plan 4z).
+  ...apiTokenHandlers,
+  ...workLogHandlers,
   ...staffUsersHandlers,
   ...staffTenantsHandlers,
   // Antes que los de tickets: `/tickets/metrics` no es un `/tickets/:id`.

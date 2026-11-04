@@ -62,6 +62,23 @@ const TENANT_TEMPLATES = {
 
 const STAFF = { userId: 'u-staff-1', name: 'Equipo Smarteam' }
 
+// Ticket de plantilla que trae registro de trabajo de ejemplo en ACME (plan 4z).
+const WORK_LOG_TEMPLATE = 1
+
+/** Entrada del registro de trabajo del seed, ligada al mensaje público que publicó. */
+function seedWorkLogEntry(ticketId, index, message, { hours, internalNote, crmProjectId }) {
+  return {
+    id: `${ticketId}-w${index}`,
+    authorId: STAFF.userId,
+    authorName: STAFF.name,
+    hours,
+    internalNote,
+    crmProjectId,
+    createdAt: message.createdAt,
+    messageId: message.id,
+  }
+}
+
 // ---------- Historial resuelto (Métricas de soporte, plan 4e) ----------
 // Tickets ya resueltos repartidos en ~18 meses, con tiempos de respuesta y resolución
 // variados (F8, F9). Se numeran primero, en orden cronológico; los 10 de arriba van después.
@@ -238,7 +255,7 @@ function createHistoryTickets(tenantKey, clients) {
  * @param {Array<object>} users usuarios del seed (para elegir quién abre cada ticket)
  */
 /** Versión de los tickets de ejemplo: si cambia, dev:mock reemplaza los guardados en el navegador. */
-export const TICKET_SEED_VERSION = 2
+export const TICKET_SEED_VERSION = 3
 
 export function createSeedTickets(users) {
   const tickets = []
@@ -368,6 +385,29 @@ export function createSeedTickets(users) {
         say('cliente', 'Sigue fallando con los clientes nuevos.')
         move('abierto', 'cliente')
         ticket.reopenCount = 1
+      }
+
+      // Registro de trabajo de ejemplo (plan 4z): dos cargas de horas en un ticket de ACME.
+      if (tenantKey === 'ACME' && templateIndex === WORK_LOG_TEMPLATE) {
+        const first = ticket.messages[0]
+        say(
+          'smarteam',
+          'Revisamos la lista de precios: a tres artículos les faltaba la vigencia. Ya la cargamos y los precios se ven en el sistema.',
+        )
+        const second = ticket.messages.at(-1)
+        ticket.workLog = [
+          seedWorkLogEntry(id, 1, first, {
+            hours: 0.75,
+            internalNote: null,
+            crmProjectId: null,
+          }),
+          seedWorkLogEntry(id, 2, second, {
+            hours: 3.5,
+            internalNote:
+              'La lista de precios del ERP no tenía fecha de vigencia en 3 artículos; se completó y se reprocesó la sincronización.',
+            crmProjectId: '18452730011',
+          }),
+        ]
       }
 
       // El cliente ya vio lo anterior, salvo cuando Smarteam le pidió algo (para que la

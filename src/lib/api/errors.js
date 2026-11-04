@@ -35,6 +35,9 @@ export const ERROR_CODES = Object.freeze({
   INVALID_IMAGE: 'invalid_image',
   IMAGE_TOO_LARGE: 'image_too_large',
   PAGE_WINDOW_EXCEEDED: 'page_window_exceeded',
+  TOKEN_LIMIT: 'token_limit',
+  INVALID_TOKEN: 'invalid_token',
+  IDEMPOTENCY_KEY_REUSED: 'idempotency_key_reused',
 })
 
 const MESSAGES_BY_CODE = {
@@ -54,6 +57,9 @@ const MESSAGES_BY_CODE = {
   invalid_image: 'Solo se aceptan imágenes PNG, JPEG o WebP.',
   image_too_large: 'Cada imagen puede pesar como máximo 5 MB.',
   page_window_exceeded: 'Para ver tickets más antiguos, filtra por estado, empresa o categoría.',
+  token_limit: 'Ya tienes 5 tokens activos. Revoca uno para crear otro.',
+  invalid_token: 'El token no es válido, está revocado o venció.',
+  idempotency_key_reused: 'Esa clave de idempotencia ya se usó con otro contenido.',
 }
 
 const MESSAGES_BY_STATUS = {

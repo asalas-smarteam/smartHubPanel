@@ -37,6 +37,7 @@ const TasksPage = lazyPage(() => import('@/features/tasks/tasks-page'), 'TasksPa
 const TaskPage = lazyPage(() => import('@/features/tasks/task-page'), 'TaskPage')
 const MappingsPage = lazyPage(() => import('@/features/mappings/mappings-page'), 'MappingsPage')
 const UsersPage = lazyPage(() => import('@/features/users/users-page'), 'UsersPage')
+const ApiTokensPage = lazyPage(() => import('@/features/account/api-tokens-page'), 'ApiTokensPage')
 
 // Tareas programadas: solo Smarteam por ahora (21-10-2026); el cliente ve "En construcción"
 // (plan 4t). Para liberarla, volver a usar TasksPage y TaskPage directo en las rutas.
@@ -111,6 +112,11 @@ export const routes = [
               {
                 path: 'cuenta/contrasena',
                 ...withPermission(PERMISSIONS.STAFF_USERS, AccountPasswordPage),
+              },
+              // Tokens personales de la API para el registro de trabajo (plan 4z).
+              {
+                path: 'cuenta/tokens',
+                ...withPermission(PERMISSIONS.STAFF_TICKETS, ApiTokensPage),
               },
             ],
           },

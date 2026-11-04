@@ -19,6 +19,7 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 | [`09-tareas-programadas.md`](09-tareas-programadas.md) | Plan 4r del panel | **J1 a J5**: tareas programadas de la empresa (solo lectura), nombres genéricos, campos que nunca salen y permiso `tasks.read`. |
 | [`10-aviso-slack.md`](10-aviso-slack.md) | Plan 4v del panel (**en pausa**) | **K1 a K6**: mensaje en Slack cuando un cliente crea un ticket (empresa, código, título y enlace), configuración por `.env` y que nunca afecte la creación. |
 | [`11-metricas-horario-habil.md`](11-metricas-horario-habil.md) | Plan 4x del panel | **L1 a L5**: tiempos de las métricas de soporte en horario hábil (lunes a viernes, 8:00 a 17:00, hora de Costa Rica) y rangos de resolución en días hábiles de 9 h. |
+| [`12-registro-trabajo.md`](12-registro-trabajo.md) | Plan 4z del panel | **M1 a M8**: tokens personales de Smarteam (`spn_…`, 90 días, máximo 5), búsqueda de ticket por código y registro de trabajo desde Claude (resumen público para el cliente + horas internas, con resolución opcional e idempotencia), `workLog` en el detalle de Smarteam y seguridad/auditoría. |
 
 ## Planes del backend preparados desde el front
 

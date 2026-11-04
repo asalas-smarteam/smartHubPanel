@@ -1,5 +1,6 @@
 // Estado del modo simulado. Imita lo que guarda el backend: usuarios (con tokenVersion),
-// sesiones e intentos fallidos de login. Solo existe en el código de mocks.
+// sesiones, intentos fallidos de login, tickets y tokens personales de la API. Solo existe en el código de mocks.
+import { createSeedApiTokens } from './api-tokens'
 import { createSeedUsers, SEED_TENANTS } from './seed'
 import { createSeedTickets, TICKET_SEED_VERSION } from './seed-tickets'
 
@@ -21,6 +22,9 @@ function createInitialState() {
     tickets,
     ticketCounters: counters,
     ticketSeedVersion: TICKET_SEED_VERSION,
+    // Tokens personales de la API y respuestas ya dadas por Idempotency-Key (plan 4z).
+    apiTokens: createSeedApiTokens(users),
+    workLogIdempotency: {},
   }
 }
 
@@ -35,6 +39,8 @@ function migrate(saved) {
     saved.ticketCounters = counters
     saved.ticketSeedVersion = TICKET_SEED_VERSION
   }
+  saved.apiTokens ??= createSeedApiTokens(saved.users)
+  saved.workLogIdempotency ??= {}
   return saved
 }
 

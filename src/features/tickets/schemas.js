@@ -91,7 +91,24 @@ export const ticketDetailSchema = ticketListItemSchema.extend({
   statusHistory: z.array(statusHistorySchema),
 })
 
-/** D3. Detalle de Smarteam: además empresa y resolución interna. */
+/** Entrada del registro de trabajo (plan 4z): horas cargadas desde la skill de registro de tiempo. */
+export const workLogEntrySchema = z.object({
+  id: z.string(),
+  author: z.object({ name: personName }),
+  hours: z.number(),
+  internalNote: z.string().nullable().optional().default(null),
+  crmProjectId: z.string().nullable().optional().default(null),
+  createdAt: isoDate,
+  messageId: z.string().nullable().optional().default(null),
+})
+
+/** Registro de trabajo del ticket, solo Smarteam. Opcional: el backend real aún no lo manda. */
+export const workLogSchema = z
+  .object({ totalHours: z.number(), entries: z.array(workLogEntrySchema) })
+  .optional()
+  .transform((value) => value ?? { totalHours: 0, entries: [] })
+
+/** D3. Detalle de Smarteam: además empresa, resolución interna y registro de trabajo. */
 export const staffTicketDetailSchema = ticketDetailSchema.extend({
   tenantKey: z.string(),
   companyName: z.string().nullable(),
@@ -102,6 +119,7 @@ export const staffTicketDetailSchema = ticketDetailSchema.extend({
       updatedBy: z.object({ name: personName }),
     })
     .nullable(),
+  workLog: workLogSchema,
 })
 
 /** D7. Respuesta de crear (solo se usa id y code). */

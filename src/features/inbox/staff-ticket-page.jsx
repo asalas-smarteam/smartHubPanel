@@ -19,6 +19,7 @@ import { staffAttachmentUrl, useStaffTicket, useStaffTicketActions } from './api
 import { InternalResolutionCard } from './internal-resolution-card'
 import { ResolveDialog } from './resolve-dialog'
 import { SlaCard } from './sla-card'
+import { WorkLogCard } from './work-log-card'
 
 /** Detalle de un ticket para Smarteam (S6 a S12). */
 export function StaffTicketPage() {
@@ -148,6 +149,8 @@ export function StaffTicketPage() {
         </Card>
 
         <SlaCard ticket={data} />
+
+        <WorkLogCard workLog={data.workLog} />
 
         <InternalResolutionCard
           resolution={data.internalResolution}

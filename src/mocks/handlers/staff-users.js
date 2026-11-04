@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 
 import { getDb, save } from '../db'
+import { revokeAllTokensOf } from './api-tokens'
 import { authorize, checkPanelHeader, errorResponse, maybeDelay, readJson } from './utils'
 
 const MAX_PAGE_SIZE = 100
@@ -142,6 +143,7 @@ export const staffUsersHandlers = [
     user.password = password
     user.mustChangePassword = true
     user.tokenVersion += 1 // invalida sus sesiones abiertas
+    revokeAllTokensOf(user.id) // y sus tokens de API (plan 4z)
     save()
     return HttpResponse.json({ temporaryPassword: password })
   }),
@@ -180,7 +182,11 @@ export const staffUsersHandlers = [
       if (user.id === staff.id && body.active === false) {
         return errorResponse(400, 'validation_error', 'No puedes desactivar tu propia cuenta.')
       }
-      if (user.active && body.active === false) user.tokenVersion += 1
+      if (user.active && body.active === false) {
+        user.tokenVersion += 1
+        // Desactivar revoca sus tokens de API; reactivar no los revive (plan 4z).
+        revokeAllTokensOf(user.id)
+      }
       user.active = Boolean(body.active)
     }
     save()

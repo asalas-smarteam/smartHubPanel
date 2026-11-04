@@ -16,10 +16,10 @@ async function fill(user, { current, next, confirm = next }) {
 }
 
 describe('cambio de contraseña de Smarteam (plan 4s)', () => {
-  it('Smarteam: el botón de la barra abre la página y cambia la contraseña', async () => {
+  it('Smarteam: el botón "Cuenta" de la barra abre la página y cambia la contraseña', async () => {
     const requests = recordRequests('/api/auth/change-password', 'POST')
     const { user, router } = renderApp({ route: '/bandeja', session: smarteam.email })
-    await user.click(await screen.findByRole('link', { name: 'Cambiar contraseña' }))
+    await user.click(await screen.findByRole('link', { name: 'Mi cuenta' }))
     expect(router.state.location.pathname).toBe('/cuenta/contrasena')
     expect(await screen.findByRole('heading', { name: 'Cambiar contraseña' })).toBeInTheDocument()
 
@@ -49,6 +49,6 @@ describe('cambio de contraseña de Smarteam (plan 4s)', () => {
   it('cliente: sin botón en la barra y sin acceso a la página', async () => {
     renderApp({ route: '/cuenta/contrasena', session: clienteUsuario.email })
     expect(await screen.findByText('No tienes acceso a esta sección')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Cambiar contraseña' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mi cuenta' })).not.toBeInTheDocument()
   })
 })

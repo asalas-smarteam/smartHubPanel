@@ -129,6 +129,25 @@ export function toStaffListItem(ticket) {
   }
 }
 
+/** Entrada del registro de trabajo tal como la devuelve la API (plan 4z). */
+export const toWorkLogEntry = (entry) => ({
+  id: entry.id,
+  author: { name: entry.authorName },
+  hours: entry.hours,
+  internalNote: entry.internalNote,
+  crmProjectId: entry.crmProjectId,
+  createdAt: entry.createdAt,
+  messageId: entry.messageId,
+})
+
+/** Registro de trabajo del ticket (solo Smarteam): total de horas y entradas, la más nueva primero. */
+function workLogOf(ticket) {
+  const entries = [...(ticket.workLog ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  // Las horas son múltiplos de 0,25: se suman en cuartos para no arrastrar decimales.
+  const quarters = entries.reduce((sum, entry) => sum + Math.round(entry.hours * 4), 0)
+  return { totalHours: quarters / 4, entries: entries.map(toWorkLogEntry) }
+}
+
 export function toStaffDetail(ticket) {
   return {
     ...detail(ticket, 'smarteam'),
@@ -141,14 +160,17 @@ export function toStaffDetail(ticket) {
           updatedBy: { name: ticket.internalResolution.updatedBy.name },
         }
       : null,
+    workLog: workLogOf(ticket),
   }
 }
 
 // ---------- Cambios ----------
+/** Agrega un mensaje público y devuelve su id. */
 export function addMessage(ticket, { authorType, user, body, attachments }) {
   const now = new Date().toISOString()
+  const id = `${ticket.id}-m${ticket.messages.length + 1}-${Date.now().toString(36)}`
   ticket.messages.push({
-    id: `${ticket.id}-m${ticket.messages.length + 1}-${Date.now().toString(36)}`,
+    id,
     authorType,
     authorId: user.id,
     authorName: user.name,
@@ -164,6 +186,7 @@ export function addMessage(ticket, { authorType, user, body, attachments }) {
   } else {
     ticket.clientLastSeenAt = now
   }
+  return id
 }
 
 export function changeStatus(ticket, to, { byType, user }) {
@@ -171,6 +194,40 @@ export function changeStatus(ticket, to, { byType, user }) {
   ticket.statusHistory.push({ from: ticket.status, to, byType, byName: user.name, at: now })
   ticket.status = to
   ticket.lastActivityAt = now
+}
+
+/**
+ * Resuelve el ticket (contrato D7): mensaje público al cliente, resolución interna y estado
+ * "Resuelto". Quien llama valida antes que el ticket no esté resuelto. Devuelve el id del mensaje.
+ */
+export function resolveTicket(ticket, { user, message, internalResolution, attachments = [] }) {
+  const messageId = addMessage(ticket, { authorType: 'smarteam', user, body: message, attachments })
+  const now = new Date().toISOString()
+  ticket.internalResolution = {
+    text: internalResolution,
+    updatedAt: now,
+    updatedBy: { userId: user.id, name: user.name },
+  }
+  changeStatus(ticket, 'resuelto', { byType: 'smarteam', user })
+  ticket.resolvedAt = now
+  return messageId
+}
+
+/** Guarda una entrada del registro de trabajo (plan 4z) y la devuelve. */
+export function addWorkLogEntry(ticket, { user, hours, internalNote, crmProjectId, messageId }) {
+  ticket.workLog ??= []
+  const entry = {
+    id: `${ticket.id}-w${ticket.workLog.length + 1}-${Date.now().toString(36)}`,
+    authorId: user.id,
+    authorName: user.name,
+    hours,
+    internalNote,
+    crmProjectId,
+    createdAt: new Date().toISOString(),
+    messageId,
+  }
+  ticket.workLog.push(entry)
+  return entry
 }
 
 export { save }
