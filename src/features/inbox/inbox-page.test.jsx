@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { getDb } from '@/mocks/db'
 import { server } from '@/mocks/server'
@@ -94,6 +94,62 @@ describe('Bandeja de Smarteam', () => {
     const untouched = getDb().tickets.find((t) => t.status === 'abierto' && !t.staffLastSeenAt)
     const row = within(table).getByText(untouched.code).closest('tr')
     expect(within(row).getByText('Mensaje nuevo del cliente')).toBeInTheDocument()
+  })
+
+  describe('SLA', () => {
+    // Miércoles 4 de noviembre, 10:00 en Costa Rica (UTC−6). Solo se simula Date.
+    const NOW = Date.parse('2026-11-04T16:00:00.000Z')
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('columna "SLA" después de "Estado" y la fila vencida marcada en rojo', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(NOW)
+      const [late, onTime] = getDb().tickets.filter((t) => t.status === 'abierto')
+      // Sin respuesta desde el martes a las 10:00: la respuesta venció hace 7 h hábiles.
+      Object.assign(late, {
+        openedAt: '2026-11-03T16:00:00.000Z',
+        firstResponseAt: null,
+        lastActivityAt: '2026-11-04T15:59:00.000Z',
+      })
+      // Abierto hace una hora: falta 1 h para responder.
+      Object.assign(onTime, {
+        openedAt: '2026-11-04T15:00:00.000Z',
+        firstResponseAt: null,
+        lastActivityAt: '2026-11-04T15:58:00.000Z',
+      })
+
+      const { table } = await openInbox()
+      const headers = within(table)
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent)
+      expect(headers.slice(headers.indexOf('Estado'), headers.indexOf('Estado') + 2)).toEqual([
+        'Estado',
+        'SLA',
+      ])
+
+      const lateRow = within(table).getByText(late.code).closest('tr')
+      expect(lateRow).toHaveAttribute('data-sla', 'overdue')
+      expect(lateRow).toHaveClass('bg-status-error-bg/40')
+      expect(within(lateRow).getByText('Respuesta vencida hace 7 h')).toBeInTheDocument()
+
+      const onTimeRow = within(table).getByText(onTime.code).closest('tr')
+      expect(onTimeRow).toHaveAttribute('data-sla', 'pending')
+      expect(onTimeRow).not.toHaveClass('bg-status-error-bg/40')
+      expect(within(onTimeRow).getByText('Responder en 1 h')).toBeInTheDocument()
+    })
+
+    it('un ticket con fecha de apertura inválida no rompe la Bandeja', async () => {
+      const broken = getDb().tickets.find((t) => t.status === 'abierto')
+      Object.assign(broken, { openedAt: 'no-es-fecha', lastActivityAt: new Date().toISOString() })
+
+      const { table } = await openInbox()
+      const row = within(table).getByText(broken.code).closest('tr')
+      expect(row).toHaveAttribute('data-sla', 'unknown')
+      expect(within(row).getByText('SLA sin datos')).toBeInTheDocument()
+      expect(within(table).getAllByRole('row').length).toBeGreaterThan(2)
+    })
   })
 
   it('una cuenta cliente no ve la Bandeja', async () => {

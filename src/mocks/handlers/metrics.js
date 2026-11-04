@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 
-import { BUSINESS_DAY_SECONDS, businessSeconds } from '../business-time'
+import { BUSINESS_DAY_SECONDS, businessSeconds } from '@/lib/business-time'
 import { getDb } from '../db'
 import { addDays, localDate, median, mondayOf, readPeriod } from '../period'
 import { companyNameOf, getTickets } from '../tickets-db'

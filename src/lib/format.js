@@ -1,6 +1,8 @@
 // Formato de cifras para tableros y métricas, en español: miles con punto, decimales con coma.
 // Se fija `es` con agrupación siempre activa para que "1.234" se vea igual en todos los navegadores.
 
+import { BUSINESS_DAY_SECONDS } from './business-time'
+
 const NBSP = ' '
 const EMPTY = '—'
 
@@ -43,8 +45,8 @@ const MINUTE = 60
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
-/** Un día hábil (lunes a viernes de 8:00 a 17:00): 9 h. */
-export const BUSINESS_DAY_SECONDS = 9 * HOUR
+// Un día hábil (lunes a viernes de 8:00 a 17:00): 9 h. Se reexporta para no duplicar la regla.
+export { BUSINESS_DAY_SECONDS }
 
 function formatDuration(seconds, day, { compact = false, empty = EMPTY } = {}) {
   if (!isNumber(seconds) || seconds < 0) return empty

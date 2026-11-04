@@ -1,4 +1,5 @@
 import { AlertTriangleIcon } from 'lucide-react'
+import { use, useState } from 'react'
 import { Link } from 'react-router'
 
 import { DataTable } from '@/components/data-table/data-table'
@@ -9,9 +10,13 @@ import { CategoryLabel, NewsDot, StatusBadge } from '@/features/tickets/status-b
 import { formatDateTime, formatRelative } from '@/lib/dates'
 import { TICKET_CATEGORIES, TICKET_STATUSES } from '@/features/tickets/constants'
 import { pickOption, usePaginationParams } from '@/lib/pagination'
+import { useNow } from '@/lib/use-now'
 
 import { useInboxSummary, useInboxTickets } from './api'
 import { InboxSummary } from './inbox-summary'
+import { ticketSla } from './sla'
+import { SlaBadge } from './sla-badge'
+import { SlaNowContext } from './sla-now-context'
 
 const getRowId = (ticket) => `${ticket.tenantKey}:${ticket.id}`
 
@@ -23,6 +28,15 @@ const RelativeDate = ({ value, empty }) =>
   ) : (
     <span className="text-muted-foreground">{empty}</span>
   )
+
+/**
+ * SLA de la fila con la hora de la Bandeja (se actualiza cada minuto). Fuera del proveedor usa
+ * la hora en que se montó la celda, para que los vencimientos se sigan viendo.
+ */
+function SlaCell({ ticket }) {
+  const [mountedAt] = useState(() => Date.now())
+  return <SlaBadge ticket={ticket} now={use(SlaNowContext) ?? mountedAt} />
+}
 
 // Estables a nivel de módulo (TanStack Table v9).
 const columns = [
@@ -66,6 +80,11 @@ const columns = [
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
   {
+    id: 'sla',
+    header: 'SLA',
+    cell: ({ row }) => <SlaCell ticket={row.original} />,
+  },
+  {
     id: 'createdBy',
     header: 'Abierto por',
     meta: { cellClassName: 'whitespace-normal' },
@@ -107,6 +126,11 @@ function Warnings({ warnings, tenants }) {
 /** Toda la fila abre el ticket (plan 4k). */
 const ticketHref = (ticket) => `/bandeja/${ticket.tenantKey}/${ticket.id}`
 
+// Fila con el SLA vencido: borde izquierdo rojo (en la primera celda: el box-shadow de un <tr>
+// no se dibuja igual en todos los navegadores) y fondo rojo muy tenue.
+const OVERDUE_ROW =
+  'bg-status-error-bg/40 hover:bg-status-error-bg/70 [&>td:first-child]:shadow-[inset_3px_0_0_var(--status-error-fg)]'
+
 /** Bandeja de Smarteam: todos los tickets de todos los tenants (S5). */
 export function InboxPage() {
   const { page, pageSize, setPagination, setFilter, getFilter } = usePaginationParams()
@@ -116,6 +140,8 @@ export function InboxPage() {
   const category = pickOption(getFilter('category'), TICKET_CATEGORIES)
 
   const tickets = useInboxTickets({ page, pageSize, status, tenantKey, category })
+  const now = useNow()
+  const slaState = (ticket) => ticketSla(ticket, now).state
   const summary = useInboxSummary()
   const tenants = useTenants()
   const tenantOptions = (tenants.data ?? []).map((tenant) => ({
@@ -166,21 +192,25 @@ export function InboxPage() {
 
       <Warnings warnings={tickets.data?.warnings} tenants={tenants.data} />
 
-      <DataTable
-        rowHref={ticketHref}
-        label="Bandeja"
-        columns={columns}
-        data={tickets.data}
-        page={page}
-        pageSize={pageSize}
-        onPaginationChange={setPagination}
-        isPending={tickets.isPending}
-        isFetching={tickets.isFetching}
-        error={tickets.error}
-        onRetry={tickets.refetch}
-        getRowId={getRowId}
-        emptyTitle="No hay tickets con estos filtros"
-      />
+      <SlaNowContext value={now}>
+        <DataTable
+          rowHref={ticketHref}
+          rowClassName={(ticket) => (slaState(ticket) === 'overdue' ? OVERDUE_ROW : undefined)}
+          rowAttributes={(ticket) => ({ 'data-sla': slaState(ticket) })}
+          label="Bandeja"
+          columns={columns}
+          data={tickets.data}
+          page={page}
+          pageSize={pageSize}
+          onPaginationChange={setPagination}
+          isPending={tickets.isPending}
+          isFetching={tickets.isFetching}
+          error={tickets.error}
+          onRetry={tickets.refetch}
+          getRowId={getRowId}
+          emptyTitle="No hay tickets con estos filtros"
+        />
+      </SlaNowContext>
     </div>
   )
 }

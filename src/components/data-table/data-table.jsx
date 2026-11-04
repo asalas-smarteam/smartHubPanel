@@ -29,19 +29,22 @@ function openRow(event, href, navigate) {
   else navigate(href)
 }
 
-function LinkedRow({ href, children }) {
+function LinkedRow({ href, className, ...props }) {
   const navigate = useNavigate()
   const open = (event) => openRow(event, href, navigate)
   return (
-    <TableRow className="cursor-pointer" onClick={open} onAuxClick={open}>
-      {children}
-    </TableRow>
+    <TableRow
+      {...props}
+      className={cn('cursor-pointer', className)}
+      onClick={open}
+      onAuxClick={open}
+    />
   )
 }
 
 /** Fila del cuerpo; con `href`, toda la fila abre el detalle. */
-function BodyRow({ href, children }) {
-  return href ? <LinkedRow href={href}>{children}</LinkedRow> : <TableRow>{children}</TableRow>
+function BodyRow({ href, ...props }) {
+  return href ? <LinkedRow href={href} {...props} /> : <TableRow {...props} />
 }
 
 // Estables a nivel de módulo (requisito de TanStack Table v9).
@@ -70,9 +73,14 @@ const numberFormat = new Intl.NumberFormat('es', { useGrouping: 'always' })
  *   maxResults?: number,
  *   windowHint?: string,
  *   rowHref?: (row: object) => string,
+ *   rowClassName?: (row: object) => string | undefined,
+ *   rowAttributes?: (row: object) => Record<string, string> | undefined,
  * }} props
  * `rowHref`: toda la fila abre esa ruta (el enlace de la celda se mantiene para teclado y
  * lector de pantalla). No navega si el clic es sobre un control o hay texto seleccionado.
+ * `rowClassName`: clases extra de cada fila del cuerpo (p. ej. marcar en rojo un ticket con el
+ * SLA vencido). `rowAttributes`: atributos extra de la fila, como `{ 'data-sla': 'overdue' }`;
+ * no pisan `rowHref` ni `rowClassName`.
  * `maxResults`: cuántos resultados deja recorrer la API (p. ej. 10 000); la paginación no pasa
  * de ahí y, si hay más, se muestra un aviso con `windowHint` (cómo acotar la búsqueda).
  * Cada columna puede definir `meta.cellClassName` (p. ej. dejar que el título haga salto de línea).
@@ -94,6 +102,8 @@ export function DataTable({
   maxResults,
   windowHint,
   rowHref,
+  rowClassName,
+  rowAttributes,
 }) {
   const pagination = useMemo(() => ({ pageIndex: page - 1, pageSize }), [page, pageSize])
 
@@ -167,7 +177,12 @@ export function DataTable({
           {!isPending &&
             !showError &&
             rows.map((row) => (
-              <BodyRow key={row.id} href={rowHref?.(row.original)}>
+              <BodyRow
+                key={row.id}
+                {...rowAttributes?.(row.original)}
+                href={rowHref?.(row.original)}
+                className={rowClassName?.(row.original)}
+              >
                 {row.getAllCells().map((cell) => (
                   <TableCell key={cell.id} className={cell.column.columnDef.meta?.cellClassName}>
                     <table.FlexRender cell={cell} />

@@ -88,4 +88,19 @@ describe('DataTable', () => {
     await user.click(screen.getByRole('button', { name: 'Reintentar' }))
     expect(onRetry).toHaveBeenCalled()
   })
+
+  it('rowClassName y rowAttributes marcan las filas; los atributos no pisan la clase', () => {
+    renderTable({
+      data: { items: items(1, 2), page: 1, pageSize: 25, total: 2 },
+      page: 1,
+      pageSize: 25,
+      rowClassName: (row) => (row.id === '1' ? 'fila-marcada' : undefined),
+      rowAttributes: (row) => ({ 'data-estado': `e${row.id}`, className: 'pisada' }),
+    })
+    const first = screen.getByText('Fila 1').closest('tr')
+    expect(first).toHaveAttribute('data-estado', 'e1')
+    expect(first).toHaveClass('fila-marcada')
+    expect(first).not.toHaveClass('pisada')
+    expect(screen.getByText('Fila 2').closest('tr')).toHaveAttribute('data-estado', 'e2')
+  })
 })

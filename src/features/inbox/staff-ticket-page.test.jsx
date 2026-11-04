@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { getDb } from '@/mocks/db'
 import { server } from '@/mocks/server'
@@ -183,5 +183,32 @@ describe('Detalle de Smarteam', () => {
     const acme = find((t) => t.tenantKey === 'ACME')
     renderApp({ route: `/bandeja/GLOBEX/${acme.id}`, session: staff })
     expect(await screen.findByText('Ticket no encontrado')).toBeInTheDocument()
+  })
+
+  describe('SLA', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('la tarjeta "SLA" muestra la primera respuesta y la resolución', async () => {
+      // Miércoles 4 de noviembre, 12:00 en Costa Rica (UTC−6). Solo se simula Date.
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(Date.parse('2026-11-04T18:00:00.000Z'))
+      const ticket = find((t) => t.status === 'esperando_cliente')
+      // Abierto hoy a las 9:00 y respondido a las 9:30; la resolución vence el viernes a las 9:00.
+      Object.assign(ticket, {
+        openedAt: '2026-11-04T15:00:00.000Z',
+        firstResponseAt: '2026-11-04T15:30:00.000Z',
+        resolvedAt: null,
+      })
+      await openTicket(ticket)
+
+      const card = screen.getByRole('region', { name: 'SLA' })
+      expect(within(actions()).getByRole('region', { name: 'SLA' })).toBe(card)
+      const goal = (label) => within(card).getByText(label).nextElementSibling
+      expect(goal('Primera respuesta')).toHaveTextContent('cumplida en 30 min')
+      expect(goal('Resolución')).toHaveTextContent('vence vie 6 nov, 09:00 · en 1 d 6 h')
+      expect(card).toHaveTextContent(/Metas en horario hábil/)
+    })
   })
 })
