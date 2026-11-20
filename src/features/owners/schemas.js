@@ -21,3 +21,10 @@ export const ownerMappingSchema = z.object({
 
 /** `GET /owner-mappings` (N1): todos, sin paginar. */
 export const ownerMappingsSchema = z.object({ items: z.array(ownerMappingSchema) })
+
+/** `POST /owner-mappings/sync` (O3): cuántos se agregaron y cuántos se actualizaron. */
+export const ownerSyncSchema = z.object({
+  added: z.number().int().min(0),
+  updated: z.number().int().min(0),
+  total: z.number().int().min(0),
+})

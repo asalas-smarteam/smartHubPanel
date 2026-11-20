@@ -21,6 +21,7 @@ El front hoy funciona contra una API simulada (MSW) que responde exactamente as�
 | [`11-metricas-horario-habil.md`](11-metricas-horario-habil.md) | Plan 4x del panel | **L1 a L5**: tiempos de las métricas de soporte en horario hábil (lunes a viernes, 8:00 a 17:00, hora de Costa Rica) y rangos de resolución en días hábiles de 9 h. |
 | [`12-registro-trabajo.md`](12-registro-trabajo.md) | Plan 4z del panel | **M1 a M8**: tokens personales de Smarteam (`spn_…`, 90 días, máximo 5), búsqueda de ticket por código y registro de trabajo desde Claude (resumen público para el cliente + horas internas, con resolución opcional e idempotencia), `workLog` en el detalle de Smarteam y seguridad/auditoría. |
 | [`13-mapeo-responsables.md`](13-mapeo-responsables.md) | Plan 5b del panel | **N1 a N4**: mapeo de responsables de la empresa (solo lectura), datos tal cual con nombres genéricos y permiso `mappings.read`. |
+| [`14-edicion-responsables.md`](14-edicion-responsables.md) | Plan 5c del panel | **O1 a O6**: el administrador edita solo el vendedor y el empleado del ERP, trae del CRM los responsables que falten (misma carga del seed) e historial de cambios en la base de cada tenant. Permiso `owners.write`. |
 
 ## Planes del backend preparados desde el front
 

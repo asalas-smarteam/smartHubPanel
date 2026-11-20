@@ -1,3 +1,5 @@
+import { formatNumber } from '@/lib/format'
+
 const collator = new Intl.Collator('es', { sensitivity: 'base' })
 
 const hasCode = (value) => value !== null && value !== undefined && value !== ''
@@ -47,6 +49,19 @@ export function summarizeOwners(items) {
     active: items.filter((item) => item.active).length,
     withoutSeller: items.filter((item) => item.active && !hasCode(item.erpOwnerId)).length,
   }
+}
+
+const plural = (count, one, many) => `${formatNumber(count)} ${count === 1 ? one : many}`
+
+/** Texto del aviso después de sincronizar con el CRM (O3). */
+export function syncMessage({ added, updated }) {
+  const refreshed = `se actualizaron los datos de ${plural(updated, 'responsable', 'responsables')}`
+  if (added > 0) {
+    const text = `Se ${added === 1 ? 'agregó' : 'agregaron'} ${plural(added, 'responsable nuevo', 'responsables nuevos')}`
+    return updated > 0 ? `${text} y ${refreshed}.` : `${text}.`
+  }
+  if (updated > 0) return `No hay responsables nuevos; ${refreshed}.`
+  return 'No hay responsables nuevos en el CRM.'
 }
 
 export { hasCode }

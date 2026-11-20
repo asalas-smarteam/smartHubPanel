@@ -1,18 +1,24 @@
-import { ArrowRightIcon } from 'lucide-react'
+import { ArrowRightIcon, PencilIcon, RefreshCwIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { StatTile } from '@/components/charts/stat-tile'
 import { DataTable } from '@/components/data-table/data-table'
 import { FilterSelect } from '@/components/filter-select'
 import { TextFilter } from '@/components/text-filter'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { PERMISSIONS, usePermissions } from '@/features/auth/permissions'
 import { TenantGate, TenantPicker } from '@/features/scope/tenant-picker'
 import { useScope } from '@/features/scope/use-scope'
+import { ERROR_CODES, getErrorMessage } from '@/lib/api/errors'
 import { formatNumber } from '@/lib/format'
 import { pickOption, usePaginationParams } from '@/lib/pagination'
 
-import { useOwnerMappings } from './api'
+import { useOwnerMappingActions, useOwnerMappings } from './api'
 import { EMPTY_VALUE, sourceLabel, STATUS_FILTERS, STATUS_OPTIONS } from './constants'
-import { filterOwners, hasCode, summarizeOwners } from './filters'
+import { EditOwnerDialog } from './edit-owner-dialog'
+import { filterOwners, hasCode, summarizeOwners, syncMessage } from './filters'
 
 const empty = <span className="text-muted-foreground">{EMPTY_VALUE}</span>
 const mono = (value) =>
@@ -87,9 +93,32 @@ const columns = [
   { id: 'source', header: 'Origen', cell: ({ row }) => sourceLabel(row.original.source) },
 ]
 
+/** Columna "Editar", solo para quien tiene `owners.write` (plan 5c). */
+const editColumn = (onEdit) => ({
+  id: 'actions',
+  header: <span className="sr-only">Acciones</span>,
+  meta: { cellClassName: 'text-right' },
+  cell: ({ row }) => (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={() => onEdit(row.original.id)}
+      aria-label={`Editar ${row.original.crmOwnerName ?? row.original.crmOwnerEmail ?? row.original.crmOwnerId}`}
+    >
+      <PencilIcon aria-hidden="true" />
+      Editar
+    </Button>
+  ),
+})
+
 const getRowId = (row) => row.id
 
-/** Mapeo de responsables de la empresa, solo lectura (plan 5b, contrato 13). */
+/**
+ * Mapeo de responsables de la empresa (plan 5b, contrato 13). Con `owners.write` (admin del
+ * cliente y Smarteam) además se editan el vendedor y el empleado del ERP y se traen del CRM los
+ * responsables que falten (plan 5c, contrato 14).
+ */
 export function OwnersPage() {
   const scope = useScope()
   const { page, pageSize, setPagination, setFilter, getFilter } = usePaginationParams()
@@ -97,8 +126,18 @@ export function OwnersPage() {
     estado: pickOption(getFilter('estado'), STATUS_FILTERS),
     q: getFilter('q'),
   }
+  const { can } = usePermissions()
+  const canWrite = can(PERMISSIONS.OWNERS_WRITE)
   const owners = useOwnerMappings(scope)
+  const actions = useOwnerMappingActions(scope)
+  const [editingId, setEditingId] = useState(null)
+  const tableColumns = useMemo(
+    () => (canWrite ? [...columns, editColumn(setEditingId)] : columns),
+    [canWrite, setEditingId],
+  )
   const all = owners.data
+  // Siempre la versión más reciente de la fila (su `updatedAt` es el control de versión).
+  const editing = editingId ? all?.find((owner) => owner.id === editingId) : null
   const filtered = all ? filterOwners(all, filters) : undefined
   const data = filtered && {
     items: filtered.slice((page - 1) * pageSize, page * pageSize),
@@ -108,13 +147,56 @@ export function OwnersPage() {
   const hasFilters = Boolean(filters.estado || filters.q)
   const whose = scope.picksTenant ? 'Esta empresa' : 'Tu empresa'
 
+  async function saveOwner(values) {
+    try {
+      await actions.update.mutateAsync({
+        id: editing.id,
+        expectedUpdatedAt: editing.updatedAt,
+        ...values,
+      })
+      setEditingId(null)
+      toast.success('Se guardaron los cambios del responsable.')
+    } catch (error) {
+      // Otro lo cambió antes: se cierra y se muestran los datos nuevos.
+      if (error?.code !== ERROR_CODES.STALE_UPDATE) throw error
+      setEditingId(null)
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  async function syncOwners() {
+    try {
+      toast.success(syncMessage(await actions.sync.mutateAsync()))
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Mapeo de responsables</h1>
-        <p className="text-sm text-muted-foreground">
-          Qué vendedor y empleado del ERP corresponde a cada responsable del CRM. Solo lectura.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Mapeo de responsables</h1>
+          <p className="text-sm text-muted-foreground">
+            Qué vendedor y empleado del ERP corresponde a cada responsable del CRM.
+            {canWrite ? '' : ' Solo lectura.'}
+          </p>
+        </div>
+        {canWrite && scope.ready && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={syncOwners}
+            disabled={actions.sync.isPending}
+            title="Trae del CRM los responsables que falten. No cambia los códigos del ERP."
+          >
+            <RefreshCwIcon
+              className={actions.sync.isPending ? 'animate-spin' : undefined}
+              aria-hidden="true"
+            />
+            {actions.sync.isPending ? 'Actualizando…' : 'Actualizar responsables del CRM'}
+          </Button>
+        )}
       </div>
 
       {scope.picksTenant && !scope.ready ? (
@@ -166,7 +248,7 @@ export function OwnersPage() {
 
           <DataTable
             label="Mapeo de responsables"
-            columns={columns}
+            columns={tableColumns}
             data={data}
             getRowId={getRowId}
             page={page}
@@ -183,6 +265,15 @@ export function OwnersPage() {
             }
           />
         </>
+      )}
+
+      {editing && (
+        <EditOwnerDialog
+          key={editing.id}
+          owner={editing}
+          onClose={() => setEditingId(null)}
+          onSave={saveOwner}
+        />
       )}
     </div>
   )

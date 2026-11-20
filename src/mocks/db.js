@@ -2,6 +2,7 @@
 // sesiones, intentos fallidos de login, tickets y tokens personales de la API. Solo existe en el código de mocks.
 import { createSeedApiTokens } from './api-tokens'
 import { createSeedUsers, SEED_TENANTS } from './seed'
+import { createSeedOwnerMappings } from './seed-owner-mappings'
 import { createSeedTickets, TICKET_SEED_VERSION } from './seed-tickets'
 
 const STORAGE_KEY = 'panel-mock-db'
@@ -25,6 +26,9 @@ function createInitialState() {
     // Tokens personales de la API y respuestas ya dadas por Idempotency-Key (plan 4z).
     apiTokens: createSeedApiTokens(users),
     workLogIdempotency: {},
+    // Mapeo de responsables editable y su historial de cambios (plan 5c).
+    ownerMappings: createSeedOwnerMappings(),
+    ownerMappingHistory: [],
   }
 }
 
@@ -41,6 +45,8 @@ function migrate(saved) {
   }
   saved.apiTokens ??= createSeedApiTokens(saved.users)
   saved.workLogIdempotency ??= {}
+  saved.ownerMappings ??= createSeedOwnerMappings()
+  saved.ownerMappingHistory ??= []
   return saved
 }
 

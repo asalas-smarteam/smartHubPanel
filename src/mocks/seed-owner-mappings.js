@@ -57,3 +57,31 @@ const build = (tenantKey, list) => list.map((fields, index) => row(tenantKey, in
 
 /** Initech no tiene responsables (estado vacío). */
 export const SEED_OWNER_MAPPINGS = [...build('ACME', ACME), ...build('GLOBEX', GLOBEX)]
+
+/** Copia editable para el estado del mock (plan 5c: ahora se pueden editar y sincronizar). */
+export const createSeedOwnerMappings = () => SEED_OWNER_MAPPINGS.map((item) => ({ ...item }))
+
+/**
+ * Responsables que hoy tiene el CRM de cada empresa (lo que devolvería el CRM al sincronizar):
+ * los ya mapeados, uno al que le pusieron nombre y dos nuevos de ACME que todavía no tienen fila.
+ */
+export const SEED_CRM_OWNERS = [
+  ...SEED_OWNER_MAPPINGS.map(({ tenantKey, crmOwnerId, crmOwnerName, crmOwnerEmail }) => ({
+    tenantKey,
+    crmOwnerId,
+    crmOwnerName: crmOwnerEmail === 'soporte@acme.example' ? 'Soporte Acme' : crmOwnerName,
+    crmOwnerEmail,
+  })),
+  {
+    tenantKey: 'ACME',
+    crmOwnerId: '82929301',
+    crmOwnerName: 'Nuria Campos',
+    crmOwnerEmail: 'nuria.campos@acme.example',
+  },
+  {
+    tenantKey: 'ACME',
+    crmOwnerId: '82929302',
+    crmOwnerName: 'Óscar Bermúdez',
+    crmOwnerEmail: 'oscar.bermudez@acme.example',
+  },
+]

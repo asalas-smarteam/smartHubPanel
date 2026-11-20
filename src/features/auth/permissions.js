@@ -12,6 +12,9 @@ export const PERMISSIONS = Object.freeze({
   SYNCS_READ: 'syncs.read',
   // Mapeo de campos de la empresa, solo lectura (plan 4p, contrato I3).
   MAPPINGS_READ: 'mappings.read',
+  // Editar el vendedor y el empleado del ERP de cada responsable y traer los que falten del CRM
+  // (plan 5c, contrato O1): admin del cliente y Smarteam.
+  OWNERS_WRITE: 'owners.write',
   // Tareas programadas de la empresa, solo lectura (plan 4r, contrato J4).
   TASKS_READ: 'tasks.read',
   STAFF_TICKETS: 'staff.tickets',

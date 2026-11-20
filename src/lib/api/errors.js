@@ -38,6 +38,10 @@ export const ERROR_CODES = Object.freeze({
   TOKEN_LIMIT: 'token_limit',
   INVALID_TOKEN: 'invalid_token',
   IDEMPOTENCY_KEY_REUSED: 'idempotency_key_reused',
+  STALE_UPDATE: 'stale_update',
+  ERP_OWNER_TAKEN: 'erp_owner_taken',
+  CRM_UNAVAILABLE: 'crm_unavailable',
+  TOO_MANY_REQUESTS: 'too_many_requests',
 })
 
 const MESSAGES_BY_CODE = {
@@ -60,6 +64,11 @@ const MESSAGES_BY_CODE = {
   token_limit: 'Ya tienes 5 tokens activos. Revoca uno para crear otro.',
   invalid_token: 'El token no es válido, está revocado o venció.',
   idempotency_key_reused: 'Esa clave de idempotencia ya se usó con otro contenido.',
+  stale_update:
+    'Alguien más cambió este registro mientras lo editabas. Ya actualizamos los datos: revísalos y vuelve a intentarlo.',
+  erp_owner_taken: 'Ese código de vendedor ya está asignado a otro responsable.',
+  crm_unavailable: 'No pudimos conectar con el CRM. Inténtalo más tarde o avisa a Smarteam.',
+  too_many_requests: 'Se acaba de actualizar. Espera un minuto e inténtalo de nuevo.',
 }
 
 const MESSAGES_BY_STATUS = {
