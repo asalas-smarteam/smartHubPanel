@@ -1,0 +1,52 @@
+const collator = new Intl.Collator('es', { sensitivity: 'base' })
+
+const hasCode = (value) => value !== null && value !== undefined && value !== ''
+
+/** Activos primero; después por nombre en el CRM (o correo si no tiene nombre). */
+export function sortOwners(items) {
+  return [...items].sort(
+    (a, b) =>
+      Number(b.active) - Number(a.active) ||
+      collator.compare(
+        a.crmOwnerName ?? a.crmOwnerEmail ?? '',
+        b.crmOwnerName ?? b.crmOwnerEmail ?? '',
+      ),
+  )
+}
+
+/**
+ * Responsables que pasan los filtros (en el navegador: la API los manda todos).
+ * La búsqueda mira nombre, correo e IDs del CRM y del ERP.
+ * @param {object[]} items
+ * @param {{ estado?: string, q?: string }} filters
+ */
+export function filterOwners(items, { estado, q }) {
+  const search = q?.trim().toLocaleLowerCase('es')
+  return items.filter(
+    (item) =>
+      (estado !== 'activos' || item.active) &&
+      (estado !== 'inactivos' || !item.active) &&
+      (!search ||
+        [
+          item.crmOwnerName,
+          item.crmOwnerEmail,
+          item.crmOwnerId,
+          item.erpOwnerName,
+          item.erpOwnerId,
+          item.erpEmployeeId,
+        ].some(
+          (field) => hasCode(field) && String(field).toLocaleLowerCase('es').includes(search),
+        )),
+  )
+}
+
+/** Totales del resumen: "sin vendedor" cuenta los activos que no tienen vendedor en el ERP. */
+export function summarizeOwners(items) {
+  return {
+    total: items.length,
+    active: items.filter((item) => item.active).length,
+    withoutSeller: items.filter((item) => item.active && !hasCode(item.erpOwnerId)).length,
+  }
+}
+
+export { hasCode }

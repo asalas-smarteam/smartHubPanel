@@ -36,6 +36,7 @@ const SyncPage = lazyPage(() => import('@/features/syncs/sync-page'), 'SyncPage'
 const TasksPage = lazyPage(() => import('@/features/tasks/tasks-page'), 'TasksPage')
 const TaskPage = lazyPage(() => import('@/features/tasks/task-page'), 'TaskPage')
 const MappingsPage = lazyPage(() => import('@/features/mappings/mappings-page'), 'MappingsPage')
+const OwnersPage = lazyPage(() => import('@/features/owners/owners-page'), 'OwnersPage')
 const UsersPage = lazyPage(() => import('@/features/users/users-page'), 'UsersPage')
 const ApiTokensPage = lazyPage(() => import('@/features/account/api-tokens-page'), 'ApiTokensPage')
 
@@ -107,6 +108,8 @@ export const routes = [
                 ...permissionRoute(PERMISSIONS.TASKS_READ, tasksPreview(<TaskPage />)),
               },
               { path: 'mapeos', ...withPermission(PERMISSIONS.MAPPINGS_READ, MappingsPage) },
+              // Mapeo de responsables (plan 5b): mismo permiso que el de campos.
+              { path: 'responsables', ...withPermission(PERMISSIONS.MAPPINGS_READ, OwnersPage) },
               { path: 'usuarios', ...withPermission(PERMISSIONS.STAFF_USERS, UsersPage) },
               // Cambio voluntario de contraseña, solo Smarteam (plan 4s).
               {

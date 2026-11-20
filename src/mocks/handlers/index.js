@@ -4,6 +4,7 @@ import { dashboardHandlers } from './dashboard'
 import { eventHandlers } from './events'
 import { mappingHandlers } from './mappings'
 import { metricsHandlers } from './metrics'
+import { ownerMappingHandlers } from './owner-mappings'
 import { scheduledTaskHandlers } from './scheduled-tasks'
 import { staffTicketHandlers } from './staff-tickets'
 import { staffTenantsHandlers } from './staff-tenants'
@@ -28,5 +29,6 @@ export const handlers = [
   ...dashboardHandlers,
   ...syncHandlers,
   ...mappingHandlers,
+  ...ownerMappingHandlers,
   ...scheduledTaskHandlers,
 ]
